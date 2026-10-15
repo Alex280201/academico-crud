@@ -1,0 +1,444 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRUD Estudiantes</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: #1f2937;
+      background: #fff;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      min-width: 0;
+      padding: 0.55rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      font: inherit;
+    }
+
+    input:focus {
+      outline: 2px solid #93c5fd;
+      border-color: #2563eb;
+    }
+
+    .botones {
+      display: flex;
+      align-items: end;
+      gap: 0.5rem;
+    }
+
+    button {
+      padding: 0.55rem 0.9rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .guardar {
+      color: white;
+      background: #2563eb;
+    }
+
+    .editar {
+      color: #111827;
+      background: #f59e0b;
+    }
+
+    .borrar {
+      color: white;
+      background: #dc2626;
+    }
+
+    .cancelar {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    #mensaje {
+      min-height: 1.4rem;
+      margin: 0.6rem 0 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .tabla-contenedor {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      white-space: nowrap;
+    }
+
+    th, td {
+      padding: 0.65rem 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    th {
+      font-weight: 700;
+      background: #f8fafc;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .acciones {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .vacio {
+      text-align: center;
+      padding: 1.5rem;
+      color: #6b7280;
+    }
+
+    @media (max-width: 750px) {
+      form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 450px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+
+      .botones {
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<h1>Estudiantes</h1>
+
+<div id="mensaje" role="status" aria-live="polite"></div>
+
+<form id="formulario">
+  <label>
+    Cédula
+    <input id="numCedula" type="text" required>
+  </label>
+
+  <label>
+    Nombre
+    <input id="nomEstudiante" type="text" required>
+  </label>
+
+  <label>
+    Email
+    <input id="email" type="email">
+  </label>
+
+  <label>
+    Teléfono
+    <input id="telefono" type="tel">
+  </label>
+
+  <label>
+    Dirección
+    <input id="direccion" type="text">
+  </label>
+
+  <label>
+    Fecha de nacimiento
+    <input id="fechNacimiento" type="date">
+  </label>
+
+  <div class="botones">
+    <button class="guardar" type="submit" id="btnGuardar">
+      Guardar
+    </button>
+
+    <button class="cancelar" type="button" id="btnCancelar" hidden>
+      Cancelar
+    </button>
+  </div>
+</form>
+
+<div class="tabla-contenedor">
+  <table>
+    <thead>
+    <tr>
+      <th>Matrícula</th>
+      <th>Cédula</th>
+      <th>Nombre</th>
+      <th>Email</th>
+      <th>Teléfono</th>
+      <th>Dirección</th>
+      <th>Nacimiento</th>
+      <th>Acciones</th>
+    </tr>
+    </thead>
+
+    <tbody id="tabla">
+    <tr>
+      <td colspan="8" class="vacio">Cargando estudiantes...</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // Dirección del backend de Spring Boot.
+  const API = "/api/estudiantes";
+
+  const CAMPOS = [
+    "numCedula",
+    "nomEstudiante",
+    "email",
+    "telefono",
+    "direccion",
+    "fechNacimiento"
+  ];
+
+  let idEditando = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  function mostrarMensaje(texto, error = false) {
+    $("mensaje").textContent = texto;
+    $("mensaje").style.color = error ? "#dc2626" : "#16a34a";
+  }
+
+  async function cargarEstudiantes() {
+    const tbody = $("tabla");
+
+    try {
+      const respuesta = await fetch(API);
+
+      if (!respuesta.ok) {
+        throw new Error("Error HTTP " + respuesta.status);
+      }
+
+      const estudiantes = await respuesta.json();
+      tbody.innerHTML = "";
+
+      if (!Array.isArray(estudiantes) || estudiantes.length === 0) {
+        const fila = document.createElement("tr");
+        const celda = document.createElement("td");
+
+        celda.colSpan = 8;
+        celda.className = "vacio";
+        celda.textContent = "No hay estudiantes registrados.";
+
+        fila.appendChild(celda);
+        tbody.appendChild(fila);
+        return;
+      }
+
+      estudiantes.forEach((est) => {
+        const fila = document.createElement("tr");
+
+        const valores = [
+          est.numMatricula,
+          est.numCedula,
+          est.nomEstudiante,
+          est.email,
+          est.telefono,
+          est.direccion,
+          est.fechNacimiento
+        ];
+
+        valores.forEach((valor) => {
+          const celda = document.createElement("td");
+          celda.textContent = valor ?? "";
+          fila.appendChild(celda);
+        });
+
+        const celdaAcciones = document.createElement("td");
+        const acciones = document.createElement("div");
+        acciones.className = "acciones";
+
+        const btnEditar = document.createElement("button");
+        btnEditar.type = "button";
+        btnEditar.textContent = "Editar";
+        btnEditar.className = "editar";
+        btnEditar.onclick = () => prepararEdicion(est);
+
+        const btnBorrar = document.createElement("button");
+        btnBorrar.type = "button";
+        btnBorrar.textContent = "Eliminar";
+        btnBorrar.className = "borrar";
+        btnBorrar.onclick = () =>
+                eliminarEstudiante(est.numMatricula);
+
+        acciones.append(btnEditar, btnBorrar);
+        celdaAcciones.appendChild(acciones);
+        fila.appendChild(celdaAcciones);
+
+        tbody.appendChild(fila);
+      });
+    } catch (error) {
+      tbody.innerHTML = "";
+      mostrarMensaje(
+              "No se pudieron cargar los estudiantes. Verifica el backend y el endpoint de la API.",
+              true
+      );
+      console.error("Error al cargar estudiantes:", error);
+    }
+  }
+
+  async function guardarEstudiante(evento) {
+    evento.preventDefault();
+
+    const estudiante = {};
+
+    CAMPOS.forEach((campo) => {
+      const valor = $(campo).value.trim();
+      estudiante[campo] = valor === "" ? null : valor;
+    });
+
+    const editando = idEditando !== null;
+    const url = editando
+            ? `${API}/${idEditando}`
+            : API;
+
+    const metodo = editando ? "PUT" : "POST";
+    const btnGuardar = $("btnGuardar");
+
+    btnGuardar.disabled = true;
+
+    try {
+      const respuesta = await fetch(url, {
+        method: metodo,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(estudiante)
+      });
+
+      if (!respuesta.ok) {
+        const detalle = await respuesta.text();
+        throw new Error(
+                `Error ${respuesta.status}: ${detalle || respuesta.statusText}`
+        );
+      }
+
+      mostrarMensaje(
+              editando
+                      ? "Estudiante actualizado correctamente."
+                      : "Estudiante creado correctamente."
+      );
+
+      limpiarFormulario();
+      await cargarEstudiantes();
+    } catch (error) {
+      mostrarMensaje(
+              "No se pudo guardar el estudiante: " + error.message,
+              true
+      );
+      console.error("Error al guardar:", error);
+    } finally {
+      btnGuardar.disabled = false;
+    }
+  }
+
+  function prepararEdicion(estudiante) {
+    idEditando = estudiante.numMatricula;
+
+    CAMPOS.forEach((campo) => {
+      $(campo).value = estudiante[campo] ?? "";
+    });
+
+    $("btnGuardar").textContent = "Actualizar";
+    $("btnCancelar").hidden = false;
+    mostrarMensaje("Editando matrícula " + idEditando + ".");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function eliminarEstudiante(id) {
+    if (!confirm("¿Seguro que deseas eliminar este estudiante?")) {
+      return;
+    }
+
+    try {
+      const respuesta = await fetch(`${API}/${id}`, {
+        method: "DELETE"
+      });
+
+      if (!respuesta.ok) {
+        const detalle = await respuesta.text();
+        throw new Error(
+                `Error ${respuesta.status}: ${detalle || respuesta.statusText}`
+        );
+      }
+
+      mostrarMensaje("Estudiante eliminado correctamente.");
+
+      if (idEditando === id) {
+        limpiarFormulario();
+      }
+
+      await cargarEstudiantes();
+    } catch (error) {
+      mostrarMensaje(
+              "No se pudo eliminar el estudiante: " + error.message,
+              true
+      );
+      console.error("Error al eliminar:", error);
+    }
+  }
+
+  function limpiarFormulario() {
+    $("formulario").reset();
+    idEditando = null;
+    $("btnGuardar").textContent = "Guardar";
+    $("btnCancelar").hidden = true;
+  }
+
+  $("formulario").addEventListener("submit", guardarEstudiante);
+  $("btnCancelar").addEventListener("click", limpiarFormulario);
+
+  cargarEstudiantes();
+</script>
+</body>
+</html>
+```

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="ISO-8859-1">
+        <title>Employee Management System</title>
+
+        <link rel="stylesheet"
+              href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+              integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+              crossorigin="anonymous">
+
+    </head>
+    <body>
+        <div class="container my-2">
+            <h1>Reporte Estudiantes</h1> 
+            <table border="1" class = "table table-striped table-responsive-md">
+                <thead>
+                    <tr>
+                        <th>Num. Matricula</th>
+                        <th>Num. Cedula</th>
+                        <th>Nom. Estudiante</th>
+                        <th>E-mail:</th>
+                        <th>Nom. Telf:</th>
+                        <th>Direccion</th>
+                        <th>Fec. Nacimiento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="estudiantes : ${listEstudiantes}">
+                        <td th:text="${estudiantes.numMatricula}"></td>
+                        <td th:text="${estudiantes.numCedula}"></td>
+                        <td th:text="${estudiantes.nomEstudiante}"></td>
+                        <td th:text="${estudiantes.email}"></td>
+                        <td th:text="${estudiantes.telefono}"></td>
+                        <td th:text="${estudiantes.direccion}"></td>
+                        <td th:text="${estudiantes.fechNacimiento}"></td>
+                        <td> <a th:href="@{/mostrarFormActualizarEst/{numMat}(numMat=${estudiantes.numMatricula})}" class="btn btn-primary">Actualizar</a>
+                            <a th:href="@{/eliminarEstudiante/{numMat}(numMat=${estudiantes.numMatricula})}" class="btn btn-danger">Eliminar</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>
+
