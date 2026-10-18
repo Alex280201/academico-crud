@@ -1,0 +1,86 @@
+:root {
+  --tinta: #17324d; --tinta-suave: #234669;
+  --fondo: #f3f6f9; --tarjeta: #fff;
+  --acento: #1f7a8c; --acento-fondo: #e1f1f4;
+  --texto: #1b2733; --tenue: #5b6b79; --borde: #d8e0e7; --error: #b3261e;
+  /* Columnas del grid: 3 normal, 2 en pantalla pequeña, 4 en grande */
+  --columnas: 3;
+}
+@media (max-width: 768px)  { :root { --columnas: 2; } }
+@media (min-width: 1280px) { :root { --columnas: 4; } }
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; background: var(--fondo); color: var(--texto); line-height: 1.45; }
+:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+.app { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 100vh; }
+.sidebar { background: var(--tinta); color: #fff; padding: 1.25rem 1rem; position: sticky; top: 0; height: 100vh; }
+.sidebar h1 { font-size: 1.25rem; margin: 0 0 .15rem; }
+.sidebar p { margin: 0 0 1.5rem; font-size: .85rem; color: #b9c8d8; }
+.sidebar nav { display: flex; flex-direction: column; gap: .25rem; }
+.sidebar a { color: #dbe6f1; text-decoration: none; padding: .6rem .75rem; border-radius: 8px; }
+.sidebar a:hover { background: var(--tinta-suave); }
+.sidebar a[aria-current="page"] { background: var(--acento); color: #fff; font-weight: 600; }
+.contenido { padding: 0 1.5rem 2rem; min-width: 0; }
+
+.barra { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: .75rem; padding: 1rem 0; background: var(--fondo); }
+.btn-menu { display: none; border: 1px solid var(--borde); background: var(--tarjeta); border-radius: 8px; padding: .55rem .7rem; font-size: 1.1rem; cursor: pointer; }
+.buscador { position: relative; flex: 1; max-width: 520px; }
+.buscador svg { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--tenue); }
+.buscador input { width: 100%; padding: .7rem .9rem .7rem 2.5rem; border: 1px solid var(--borde); border-radius: 999px; font-size: 1rem; background: var(--tarjeta); color: var(--texto); }
+.aviso { font-size: .9rem; color: var(--acento); font-weight: 600; white-space: nowrap; }
+
+.titulo { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: .25rem 0 1rem; }
+.titulo h2 { margin: 0; font-size: 1.5rem; }
+.tenue { color: var(--tenue); font-size: .95rem; }
+
+.grid { display: grid; grid-template-columns: repeat(var(--columnas), minmax(0, 1fr)); gap: 1rem; }
+a.tarjeta { display: block; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 12px; overflow: hidden; color: inherit; text-decoration: none; min-width: 0; }
+a.tarjeta:hover { border-color: var(--acento); }
+.foto { background: var(--acento-fondo); aspect-ratio: 1 / 1; display: grid; place-items: center; }
+.foto img { width: 80%; height: 80%; object-fit: contain; }
+.cuerpo { padding: .85rem 1rem 1rem; }
+.cuerpo h3 { margin: 0; font-size: 1.05rem; text-transform: capitalize; overflow-wrap: anywhere; }
+.num { font-size: .8rem; color: var(--tenue); }
+.chips { display: flex; flex-wrap: wrap; gap: .35rem; margin: .5rem 0; }
+.chip { background: var(--acento-fondo); color: var(--acento); font-size: .8rem; padding: .15rem .6rem; border-radius: 999px; }
+.desc { margin: 0; font-size: .88rem; color: var(--tenue); }
+
+.estado { grid-column: 1 / -1; text-align: center; padding: 2.5rem 1rem; background: var(--tarjeta); border: 1px dashed var(--borde); border-radius: 12px; color: var(--tenue); }
+.estado.error { color: var(--error); border-color: var(--error); }
+button.accion { margin-top: .75rem; padding: .6rem 1.2rem; border: none; border-radius: 8px; background: var(--acento); color: #fff; font-size: .95rem; cursor: pointer; }
+.mas { text-align: center; margin-top: 1.25rem; }
+
+/* Detalle */
+.detalle { max-width: 900px; margin: 0 auto; padding: 1.25rem; }
+.detalle-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 1.5rem; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 14px; padding: 1.25rem; }
+.detalle h1 { margin: 0; text-transform: capitalize; font-size: 1.8rem; }
+.detalle h2 { font-size: 1.05rem; margin: 1.25rem 0 .5rem; }
+.detalle .foto { border-radius: 12px; }
+.datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin-top: .75rem; }
+.dato { background: var(--fondo); border-radius: 8px; padding: .5rem .65rem; }
+.dato span { display: block; font-size: .78rem; color: var(--tenue); }
+.barra-stat { display: grid; grid-template-columns: 110px 1fr 40px; align-items: center; gap: .5rem; font-size: .9rem; margin: .3rem 0; }
+.pista { background: var(--borde); border-radius: 999px; height: 8px; overflow: hidden; }
+.pista i { display: block; height: 100%; background: var(--acento); }
+.evoluciones { display: flex; flex-wrap: wrap; gap: .75rem; }
+.evo { width: 96px; text-align: center; text-decoration: none; color: inherit; font-size: .85rem; text-transform: capitalize; }
+.evo img { width: 96px; height: 96px; object-fit: contain; background: var(--acento-fondo); border-radius: 10px; }
+.evo.actual img { outline: 3px solid var(--acento); }
+.pie { display: flex; justify-content: flex-end; margin-top: 1rem; }
+.pie button { margin: 0; }
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { position: fixed; z-index: 30; left: 0; top: 0; width: 240px; transform: translateX(-100%); transition: transform .2s; }
+  .sidebar.abierto { transform: none; }
+  .btn-menu { display: block; }
+  .contenido { padding: 0 .85rem 1.5rem; }
+  .cuerpo { padding: .65rem .75rem .8rem; }
+  .detalle-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .sidebar { transition: none; } }
+
+/* Botón de idioma */
+.btn-idioma { margin-left: auto; border: 1px solid var(--borde); background: var(--tarjeta); color: var(--texto); border-radius: 999px; padding: .5rem .9rem; font-size: .9rem; font-weight: 600; cursor: pointer; }
+.barra-idioma { max-width: 900px; margin: 0 auto; padding: 1rem 1.25rem 0; display: flex; justify-content: flex-end; }

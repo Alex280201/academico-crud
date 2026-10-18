@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Students · Academico</title>
+  <style>
+    :root {
+      --tinta: #17324d;
+      --tinta-suave: #234669;
+      --fondo: #f3f6f9;
+      --tarjeta: #ffffff;
+      --acento: #1f7a8c;
+      --acento-fondo: #e1f1f4;
+      --texto: #1b2733;
+      --tenue: #5b6b79;
+      --borde: #d8e0e7;
+      --error: #b3261e;
+      /* Columnas del grid: 3 por defecto, 2 en pantalla pequeña, 4 en grande */
+      --columnas: 3;
+    }
+    @media (max-width: 768px)  { :root { --columnas: 2; } }
+    @media (min-width: 1280px) { :root { --columnas: 4; } }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+      background: var(--fondo);
+      color: var(--texto);
+      line-height: 1.45;
+    }
+    :focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+    /* Estructura: sidebar + contenido */
+    .app { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 100vh; }
+
+    .sidebar {
+      background: var(--tinta);
+      color: #fff;
+      padding: 1.25rem 1rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .sidebar h1 { font-size: 1.25rem; margin: 0 0 .15rem; }
+    .sidebar p  { margin: 0 0 1.5rem; font-size: .85rem; color: #b9c8d8; }
+    .sidebar nav { display: flex; flex-direction: column; gap: .25rem; }
+    .sidebar a {
+      color: #dbe6f1;
+      text-decoration: none;
+      padding: .6rem .75rem;
+      border-radius: 8px;
+    }
+    .sidebar a:hover { background: var(--tinta-suave); }
+    .sidebar a[aria-current="page"] { background: var(--acento); color: #fff; font-weight: 600; }
+
+    .contenido { padding: 0 1.5rem 2rem; min-width: 0; }
+
+    /* Barra superior con buscador */
+    .barra {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: 1rem 0;
+      background: var(--fondo);
+    }
+    .btn-menu {
+      display: none;
+      border: 1px solid var(--borde);
+      background: var(--tarjeta);
+      border-radius: 8px;
+      padding: .55rem .7rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .buscador { position: relative; flex: 1; max-width: 520px; }
+    .buscador svg {
+      position: absolute; left: .8rem; top: 50%;
+      transform: translateY(-50%);
+      width: 18px; height: 18px; color: var(--tenue);
+    }
+    .buscador input {
+      width: 100%;
+      padding: .7rem .9rem .7rem 2.5rem;
+      border: 1px solid var(--borde);
+      border-radius: 999px;
+      font-size: 1rem;
+      background: var(--tarjeta);
+      color: var(--texto);
+    }
+    .tiempo-real { font-size: .85rem; color: var(--tenue); white-space: nowrap; }
+
+    .titulo { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: .25rem 0 1rem; }
+    .titulo h2 { margin: 0; font-size: 1.5rem; }
+    #contador { color: var(--tenue); font-size: .95rem; }
+
+    /* Grid de tarjetas */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(var(--columnas), minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .tarjeta {
+      background: var(--tarjeta);
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      padding: 1rem;
+      cursor: pointer;
+      min-width: 0;
+    }
+    .tarjeta:hover { border-color: var(--acento); }
+    .tarjeta-cabeza { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; min-width: 0; }
+    .inicial {
+      flex: none;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--acento-fondo);
+      color: var(--acento);
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 1.1rem;
+    }
+    .tarjeta h3 { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+    .matricula { font-size: .8rem; color: var(--tenue); }
+
+    .dato { display: flex; flex-direction: column; margin-top: .45rem; min-width: 0; }
+    .etiqueta { font-size: .78rem; color: var(--tenue); }
+    .valor { font-size: .92rem; overflow-wrap: anywhere; }
+
+    /* Estados: cargando, vacío, error */
+    .estado {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 2.5rem 1rem;
+      background: var(--tarjeta);
+      border: 1px dashed var(--borde);
+      border-radius: 12px;
+      color: var(--tenue);
+    }
+    .estado.error { color: var(--error); border-color: var(--error); }
+    .estado button {
+      margin-top: .75rem;
+      padding: .55rem 1rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--acento);
+      color: #fff;
+      font-size: .95rem;
+      cursor: pointer;
+    }
+
+    /* Ventana de detalle */
+    .fondo-modal {
+      position: fixed; inset: 0;
+      background: rgba(23, 50, 77, .55);
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 1rem;
+      z-index: 20;
+    }
+    .fondo-modal.abierto { display: flex; }
+    .modal {
+      background: var(--tarjeta);
+      border-radius: 14px;
+      width: 100%; max-width: 460px;
+      max-height: 90vh; overflow: auto;
+      padding: 1.5rem;
+      animation: aparece .18s ease-out;
+    }
+    @keyframes aparece { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .modal .tarjeta-cabeza h3 { font-size: 1.25rem; }
+    .modal .dato { padding: .5rem 0; border-bottom: 1px solid var(--borde); margin: 0; }
+    .modal .valor { font-size: 1rem; }
+    .btn-idioma {
+      margin-left: auto; border: 1px solid var(--borde); background: var(--tarjeta); color: var(--texto);
+      border-radius: 999px; padding: .5rem .9rem; font-size: .9rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-nuevo {
+      padding: .6rem 1.1rem; border: none; border-radius: 999px;
+      background: var(--acento); color: #fff; font-size: .95rem; font-weight: 600; cursor: pointer;
+    }
+    .titulo-acciones { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .modal h3#modalNombre { margin: 0; }
+    .campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-top: 1rem; }
+    .campo { display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; color: var(--tenue); }
+    .campo input {
+      padding: .6rem .7rem; border: 1px solid var(--borde); border-radius: 8px;
+      font-size: 1rem; color: var(--texto); background: #fff; width: 100%;
+    }
+    .acciones { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.25rem; }
+    .acciones button {
+      flex: 1; padding: .7rem; border-radius: 8px; border: 1px solid transparent;
+      font-size: 1rem; cursor: pointer;
+    }
+    .acciones button:disabled { opacity: .6; cursor: wait; }
+    .principal { background: var(--acento); color: #fff; }
+    .sec { background: var(--acento-fondo); color: var(--acento); }
+    .peligro { background: #fff; color: var(--error); border-color: var(--error) !important; }
+    .cerrar { background: var(--tinta); color: #fff; }
+    .toast {
+      position: fixed; left: 50%; bottom: 1.25rem; transform: translateX(-50%);
+      background: var(--tinta); color: #fff; padding: .7rem 1.1rem; border-radius: 10px;
+      max-width: 90vw; z-index: 40; display: none;
+    }
+    .toast.visible { display: block; }
+    .toast.error { background: var(--error); }
+    @media (max-width: 480px) { .campos { grid-template-columns: minmax(0, 1fr); } }
+
+    /* Pantallas pequeñas: el sidebar se oculta y se abre con el botón de menú */
+    @media (max-width: 768px) {
+      .app { grid-template-columns: minmax(0, 1fr); }
+      .sidebar {
+        position: fixed; z-index: 30;
+        left: 0; top: 0; width: 240px;
+        transform: translateX(-100%);
+        transition: transform .2s;
+      }
+      .sidebar.abierto { transform: none; }
+      .btn-menu { display: block; }
+      .contenido { padding: 0 .85rem 1.5rem; }
+      .tiempo-real { display: none; }
+      .tarjeta { padding: .75rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .modal { animation: none; }
+      .sidebar { transition: none; }
+    }
+  </style>
+</head>
+<body data-titulo="p1Title">
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <h1>Academico</h1>
+      <p data-i18n="appSub">Student management</p>
+      <nav aria-label="Main menu" data-i18n-aria="navAria">
+        <a href="pagina1.html" aria-current="page" data-i18n="navStudents">Students</a>
+        <a href="pagina2.html" data-i18n="navApi">Page 2 (public API)</a>
+      </nav>
+    </aside>
+
+    <main class="contenido">
+      <div class="barra">
+        <button class="btn-menu" id="btnMenu" aria-label="Open menu" data-i18n-aria="menu">☰</button>
+        <div class="buscador">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="buscar" type="search" placeholder="Search by name, ID number or email" aria-label="Search students" data-i18n-placeholder="p1Search" data-i18n-aria="p1SearchAria" autocomplete="off">
+        </div>
+        <span class="tiempo-real" data-i18n="p1Live">Searches as you type</span>
+        <button type="button" class="btn-idioma" id="btnIdioma" data-i18n-aria="cambiarIdioma" aria-label="Switch language">Español</button>
+      </div>
+
+      <div class="titulo">
+        <h2 data-i18n="navStudents">Students</h2>
+        <div class="titulo-acciones">
+          <span id="contador" aria-live="polite"></span>
+          <button type="button" class="btn-nuevo" id="btnNuevo" data-i18n="p1New">+ New student</button>
+        </div>
+      </div>
+
+      <section class="grid" id="grid" aria-label="Student list" data-i18n-aria="p1ListAria"></section>
+    </main>
+  </div>
+
+  <div class="fondo-modal" id="fondoModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalNombre" id="modal"></div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="idioma.js"></script>
+  <script>
+    // Dirección del back. Si abres esta página desde otro puerto, usa la dirección completa:
+    // const API = "http://localhost:8080/api/estudiantes";
+    const API = "/api/estudiantes";
+
+    const $ = (id) => document.getElementById(id);
+    let estudiantes = [];
+    let cargado = false;
+
+    // Evita que un dato con símbolos raros rompa el HTML
+    const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    // Para buscar sin importar mayúsculas ni tildes
+    const normalizar = (t) =>
+      String(t ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    // "2000-01-31" -> "31/01/2000" (sin usar Date, para evitar errores de zona horaria)
+    const formatearFecha = (f) => {
+      if (!f) return "—";
+      const [anio, mes, dia] = String(f).split("-");
+      const fecha = new Date(anio, mes - 1, dia);
+      if (isNaN(fecha)) return f;
+      return fecha.toLocaleDateString(idioma === "es" ? "es-EC" : "en-US", { year: "numeric", month: "long", day: "numeric" });
+    };
+
+    const vacio = (v) => (v === null || v === undefined || v === "" ? "—" : v);
+
+    function datosDe(est) {
+      const { numCedula, email, telefono, direccion, fechNacimiento } = est;
+      return [
+        [t("fCedula"), vacio(numCedula)],
+        [t("fEmail"), vacio(email)],
+        [t("fPhone"), vacio(telefono)],
+        [t("fAddress"), vacio(direccion)],
+        [t("fBirth"), formatearFecha(fechNacimiento)]
+      ];
+    }
+
+    const filasDatos = (est) =>
+      datosDe(est).map(([etiqueta, valor]) =>
+        `<div class="dato"><span class="etiqueta">${etiqueta}</span><span class="valor">${esc(valor)}</span></div>`
+      ).join("");
+
+    function dibujar(lista) {
+      const grid = $("grid");
+
+      if (lista.length === 0) {
+        grid.innerHTML = `<div class="estado">${
+          estudiantes.length === 0
+            ? t("noneYet")
+            : t("noMatch")
+        }</div>`;
+        return;
+      }
+
+      grid.innerHTML = lista.map((est) => {
+        const inicial = esc((est.nomEstudiante || "?").trim().charAt(0).toUpperCase());
+        return `
+          <article class="tarjeta" tabindex="0" role="button" data-id="${esc(est.numMatricula)}"
+                   aria-label="${esc(t("viewAria", { name: est.nomEstudiante }))}">
+            <div class="tarjeta-cabeza">
+              <div class="inicial" aria-hidden="true">${inicial}</div>
+              <div>
+                <h3>${esc(est.nomEstudiante)}</h3>
+                <span class="matricula">${esc(t("idLabel", { id: est.numMatricula }))}</span>
+              </div>
+            </div>
+            ${filasDatos(est)}
+          </article>`;
+      }).join("");
+    }
+
+    function actualizarContador(mostrados) {
+      $("contador").textContent = t("p1Count", { n: mostrados, total: estudiantes.length });
+    }
+
+    // Búsqueda en tiempo real: se ejecuta con cada letra que escribes
+    function filtrar() {
+      const q = normalizar($("buscar").value.trim());
+      const resultado = q === ""
+        ? estudiantes
+        : estudiantes.filter((e) =>
+            [e.nomEstudiante, e.numCedula, e.email].some((campo) => normalizar(campo).includes(q)));
+      dibujar(resultado);
+      actualizarContador(resultado.length);
+    }
+
+    async function cargarEstudiantes() {
+      $("grid").innerHTML = `<div class="estado">${t("loading")}</div>`;
+      try {
+        const respuesta = await fetch(API);
+        if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
+        estudiantes = await respuesta.json();
+        cargado = true;
+        filtrar();
+      } catch (error) {
+        console.error("No se pudo cargar:", error);
+        $("contador").textContent = "";
+        $("grid").innerHTML = `<div class="estado error">
+          ${t("connErr")}
+          <br><button type="button" id="reintentar">${t("retry")}</button></div>`;
+        $("reintentar").addEventListener("click", cargarEstudiantes);
+      }
+    }
+
+    // Detalle en ventana
+    function abrirDetalle(id) {
+      const est = estudiantes.find((e) => String(e.numMatricula) === String(id));
+      if (!est) return;
+      $("modal").innerHTML = `
+        <div class="tarjeta-cabeza">
+          <div class="inicial" aria-hidden="true">${esc((est.nomEstudiante || "?").trim().charAt(0).toUpperCase())}</div>
+          <div>
+            <h3 id="modalNombre">${esc(est.nomEstudiante)}</h3>
+            <span class="matricula">${esc(t("idLabel", { id: est.numMatricula }))}</span>
+          </div>
+        </div>
+        ${filasDatos(est)}
+        <div class="acciones">
+          <button type="button" class="sec" id="btnEditar">${t("edit")}</button>
+          <button type="button" class="peligro" id="btnEliminar">${t("del")}</button>
+          <button type="button" class="cerrar" id="btnCerrar">${t("close")}</button>
+        </div>`;
+      $("fondoModal").classList.add("abierto");
+      $("btnCerrar").focus();
+      $("btnCerrar").addEventListener("click", cerrarDetalle);
+      $("btnEditar").addEventListener("click", () => abrirFormulario(est));
+      $("btnEliminar").addEventListener("click", () => eliminar(est));
+    }
+    const cerrarDetalle = () => $("fondoModal").classList.remove("abierto");
+
+    // ---- Agregar, editar y eliminar ----
+    function mostrarAviso(texto, error = false) {
+      const t = $("toast");
+      t.textContent = texto;
+      t.className = "toast visible" + (error ? " error" : "");
+      clearTimeout(mostrarAviso.id);
+      mostrarAviso.id = setTimeout(() => { t.className = "toast"; }, 3500);
+    }
+
+    // [campo, etiqueta, tipo de input]; los que llevan * son obligatorios
+    const CAMPOS = [
+      ["numCedula", "fCedula", "text", true],
+      ["nomEstudiante", "fName", "text", true],
+      ["email", "fEmail", "email", false],
+      ["telefono", "fPhone", "tel", false],
+      ["direccion", "fAddress", "text", false],
+      ["fechNacimiento", "fBirth", "date", false]
+    ];
+
+    // Sin parámetro: formulario para agregar. Con un estudiante: formulario para editarlo.
+    function abrirFormulario(est = null) {
+      const editando = est !== null;
+      const campos = CAMPOS.map(([campo, clave, tipo, obligatorio]) => `
+        <label class="campo">${t(clave)}${obligatorio ? " *" : ""}
+          <input id="f_${campo}" type="${tipo}" value="${esc(est?.[campo] ?? "")}" ${obligatorio ? "required" : ""}>
+        </label>`).join("");
+      $("modal").innerHTML = `
+        <h3 id="modalNombre">${editando ? t("editTitle") : t("newTitle")}</h3>
+        <form id="formEst">
+          <div class="campos">${campos}</div>
+          <div class="acciones">
+            <button type="submit" class="principal" id="btnGuardar">${editando ? t("saveChanges") : t("save")}</button>
+            <button type="button" class="cerrar" id="btnCancelar">${t("cancel")}</button>
+          </div>
+        </form>`;
+      $("fondoModal").classList.add("abierto");
+      $("f_numCedula").focus();
+      $("btnCancelar").addEventListener("click", cerrarDetalle);
+      $("formEst").addEventListener("submit", (e) => { e.preventDefault(); guardar(est); });
+    }
+
+    async function guardar(est) {
+      const datos = {};
+      CAMPOS.forEach(([campo]) => {
+        const valor = $("f_" + campo).value.trim();
+        datos[campo] = valor === "" ? null : valor;
+      });
+      const editando = est !== null;
+      const boton = $("btnGuardar");
+      boton.disabled = true;
+      try {
+        const respuesta = await fetch(editando ? `${API}/${est.numMatricula}` : API, {
+          method: editando ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(datos)
+        });
+        if (!respuesta.ok) {
+          throw new Error(respuesta.status === 400
+            ? t("badData")
+            : `Error ${respuesta.status}`);
+        }
+        cerrarDetalle();
+        mostrarAviso(editando ? t("updated") : t("saved"));
+        await cargarEstudiantes();
+      } catch (error) {
+        console.error("No se pudo guardar:", error);
+        mostrarAviso(t("saveFail", { msg: error.message }), true);
+        boton.disabled = false;
+      }
+    }
+
+    async function eliminar(est) {
+      if (!confirm(t("confirmDel", { name: est.nomEstudiante }))) return;
+      try {
+        const respuesta = await fetch(`${API}/${est.numMatricula}`, { method: "DELETE" });
+        if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
+        cerrarDetalle();
+        mostrarAviso(t("deleted"));
+        await cargarEstudiantes();
+      } catch (error) {
+        console.error("No se pudo eliminar:", error);
+        mostrarAviso(t("delFail", { msg: error.message }), true);
+      }
+    }
+
+    // Eventos
+    $("buscar").addEventListener("input", filtrar);
+
+    $("grid").addEventListener("click", (e) => {
+      const tarjeta = e.target.closest(".tarjeta");
+      if (tarjeta) abrirDetalle(tarjeta.dataset.id);
+    });
+    $("grid").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const tarjeta = e.target.closest(".tarjeta");
+      if (tarjeta) { e.preventDefault(); abrirDetalle(tarjeta.dataset.id); }
+    });
+
+    $("fondoModal").addEventListener("click", (e) => { if (e.target === $("fondoModal")) cerrarDetalle(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarDetalle(); });
+
+    $("btnNuevo").addEventListener("click", () => abrirFormulario());
+    document.addEventListener("idiomaCambiado", () => {
+      cerrarDetalle();
+      if (cargado) filtrar(); else cargarEstudiantes();
+    });
+    $("btnMenu").addEventListener("click", () => $("sidebar").classList.toggle("abierto"));
+    $("sidebar").addEventListener("click", (e) => { if (e.target.tagName === "A") $("sidebar").classList.remove("abierto"); });
+
+    cargarEstudiantes();
+  </script>
+</body>
+</html>

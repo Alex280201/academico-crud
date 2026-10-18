@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pokédex · Academico</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <h1>Academico</h1>
+      <p data-i18n="appSub">Student management</p>
+      <nav aria-label="Main menu" data-i18n-aria="navAria">
+        <a href="pagina1.html" data-i18n="navStudents">Students</a>
+        <a href="pagina2.html" aria-current="page" data-i18n="navApi">Page 2 (public API)</a>
+      </nav>
+    </aside>
+
+    <main class="contenido">
+      <div class="barra">
+        <button class="btn-menu" id="btnMenu" aria-label="Open menu" data-i18n-aria="menu">☰</button>
+        <div class="buscador">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="buscar" type="search" placeholder="Search Pokémon by name" aria-label="Search Pokémon" data-i18n-placeholder="p2Search" data-i18n-aria="p2SearchAria" autocomplete="off">
+        </div>
+        <span class="aviso" id="aviso" aria-live="polite"></span>
+        <button type="button" class="btn-idioma" id="btnIdioma" data-i18n-aria="cambiarIdioma" aria-label="Switch language">Español</button>
+      </div>
+
+      <div class="titulo">
+        <h2>Pokédex</h2>
+        <span class="tenue" id="contador" aria-live="polite"></span>
+      </div>
+
+      <section class="grid" id="grid" aria-label="Pokémon list" data-i18n-aria="p2ListAria"></section>
+      <div class="mas" id="mas"></div>
+    </main>
+  </div>
+
+  <script src="idioma.js"></script>
+  <script>
+    const API = "https://pokeapi.co/api/v2";
+    const TOTAL = 151;          // cuántos Pokémon se cargan en la lista
+    const POR_PAGINA = 20;      // cuántas tarjetas se muestran por vez
+    const RETRASO_MS = 4000;    // espera de la búsqueda: 4 segundos
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    let todos = [];      // [{ name, id }] de /pokemon
+    let lista = [];      // resultado del filtro actual
+    let pagina = 1;
+    const cache = new Map();
+
+    async function pedir(url) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`Error ${r.status}`);
+      return r.json();
+    }
+    const idDe = (url) => Number(url.split("/").filter(Boolean).pop());
+
+    // Endpoint 1: /pokemon (lista) y /pokemon/{nombre} (datos de cada tarjeta)
+    async function datosDe(name) {
+      if (!cache.has(name)) cache.set(name, await pedir(`${API}/pokemon/${name}`));
+      return cache.get(name);
+    }
+
+    function tarjeta(d) {
+      const { id, name, types, height, weight, sprites } = d;
+      const img = sprites.other["official-artwork"].front_default || sprites.front_default;
+      const chips = types.map((tp) => `<span class="chip">${esc(nombreTipo(tp.type.name))}</span>`).join("");
+      return `
+        <a class="tarjeta" href="detalle.html?id=${id}" aria-label="${esc(t("viewAria", { name }))}">
+          <div class="foto"><img src="${esc(img)}" alt="${esc(name)}" loading="lazy"></div>
+          <div class="cuerpo">
+            <h3>${esc(name)}</h3>
+            <span class="num">${esc(t("no", { n: String(id).padStart(3, "0") }))}</span>
+            <div class="chips">${chips}</div>
+            <p class="desc">${t("cardDesc", { h: (height / 10).toFixed(1), w: (weight / 10).toFixed(1) })}</p>
+          </div>
+        </a>`;
+    }
+
+    async function dibujar() {
+      const grid = $("grid");
+      const parte = lista.slice(0, pagina * POR_PAGINA);
+      $("contador").textContent = t("p1Count", { n: parte.length, total: lista.length });
+      $("mas").innerHTML = "";
+
+      if (parte.length === 0) {
+        grid.innerHTML = `<div class="estado">${t("p2NoMatch")}</div>`;
+        return;
+      }
+      grid.innerHTML = `<div class="estado">${t("p2LoadingCards")}</div>`;
+      try {
+        const datos = await Promise.all(parte.map((p) => datosDe(p.name)));
+        grid.innerHTML = datos.map(tarjeta).join("");
+        if (parte.length < lista.length) {
+          $("mas").innerHTML = `<button class="accion" id="btnMas">${t("more")}</button>`;
+          $("btnMas").addEventListener("click", () => { pagina++; dibujar(); });
+        }
+      } catch (e) {
+        console.error(e);
+        grid.innerHTML = `<div class="estado error">${t("p2Err")} <br><button class="accion" id="reintentar">${t("retry")}</button></div>`;
+        $("reintentar").addEventListener("click", dibujar);
+      }
+    }
+
+    function aplicarFiltro(texto) {
+      const q = texto.trim().toLowerCase();
+      lista = q ? todos.filter((p) => p.name.includes(q)) : todos;
+      pagina = 1;
+      dibujar();
+    }
+
+    async function iniciar() {
+      $("grid").innerHTML = `<div class="estado">${t("p2Loading")}</div>`;
+      try {
+        const { results } = await pedir(`${API}/pokemon?limit=${TOTAL}`);
+        todos = results.map(({ name, url }) => ({ name, id: idDe(url) }));
+        aplicarFiltro("");
+      } catch (e) {
+        console.error(e);
+        $("grid").innerHTML = `<div class="estado error">${t("p2Err")} <br><button class="accion" id="reintentar">${t("retry")}</button></div>`;
+        $("reintentar").addEventListener("click", iniciar);
+      }
+    }
+
+    // Búsqueda con retraso: cada tecla reinicia la espera y la búsqueda
+    // se ejecuta recién 4 segundos después de la última tecla (debounce).
+    let temporizador = null, cuenta = null;
+    $("buscar").addEventListener("input", () => {
+      clearTimeout(temporizador);
+      clearInterval(cuenta);
+      let seg = RETRASO_MS / 1000;
+      $("aviso").textContent = t("p2Wait", { s: seg });
+      cuenta = setInterval(() => { seg--; if (seg > 0) $("aviso").textContent = t("p2Wait", { s: seg }); }, 1000);
+      temporizador = setTimeout(() => {
+        clearInterval(cuenta);
+        $("aviso").textContent = "";
+        aplicarFiltro($("buscar").value);
+      }, RETRASO_MS);
+    });
+
+    $("btnMenu").addEventListener("click", () => $("sidebar").classList.toggle("abierto"));
+    document.addEventListener("idiomaCambiado", () => { if (todos.length) dibujar(); else iniciar(); });
+    iniciar();
+  </script>
+</body>
+</html>

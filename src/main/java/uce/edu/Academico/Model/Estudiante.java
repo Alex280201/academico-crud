@@ -30,7 +30,7 @@ public class Estudiante {
 
     @JsonIgnore
     @OneToMany(mappedBy = "estudiante", cascade = CascadeType.ALL)
-    private List<AsistenciaNunez> asistencias;
+    private List<Asistencia> asistencias;
 
     public Long getNumMatricula() {
         return numMatricula;
@@ -88,11 +88,11 @@ public class Estudiante {
         this.fechNacimiento = fechNacimiento;
     }
 
-    public List<AsistenciaNunez> getAsistencias() {
+    public List<Asistencia> getAsistencias() {
         return asistencias;
     }
 
-    public void setAsistencias(List<AsistenciaNunez> asistencias) {
+    public void setAsistencias(List<Asistencia> asistencias) {
         this.asistencias = asistencias;
     }
 }

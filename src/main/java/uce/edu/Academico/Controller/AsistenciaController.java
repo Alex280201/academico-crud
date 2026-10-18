@@ -4,16 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import uce.edu.Academico.Model.AsistenciaNunez;
+import uce.edu.Academico.Model.Asistencia;
 import uce.edu.Academico.Model.Estudiante;
-import uce.edu.Academico.Service.AsistenciaNunezService;
+import uce.edu.Academico.Service.AsistenciaService;
 import uce.edu.Academico.Service.EstudianteService;
 
 @Controller
-public class AsistenciaNunezController {
+public class AsistenciaController {
 
     @Autowired
-    private AsistenciaNunezService asistenciaService;
+    private AsistenciaService asistenciaService;
 
     @Autowired
     private EstudianteService estudianteService;
@@ -23,7 +23,7 @@ public class AsistenciaNunezController {
             @PathVariable(value = "numMat") long numMat, Model model) {
 
         Estudiante estudiante = estudianteService.getEstudiantePorNumMatri(numMat);
-        AsistenciaNunez asistencia = new AsistenciaNunez();
+        Asistencia asistencia = new Asistencia();
         asistencia.setEstudiante(estudiante);
 
         model.addAttribute("asistencia", asistencia);
@@ -32,7 +32,7 @@ public class AsistenciaNunezController {
 
     @PostMapping("grabarAsistencia")
     public String grabarAsistencia(
-            @ModelAttribute("asistencia") AsistenciaNunez asistencia) {
+            @ModelAttribute("asistencia") Asistencia asistencia) {
 
         asistenciaService.insertarAsistencia(asistencia);
         return "/index";

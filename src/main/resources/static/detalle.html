@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Detalle · Pokédex</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <header class="barra-idioma">
+    <button type="button" class="btn-idioma" id="btnIdioma" data-i18n-aria="cambiarIdioma" aria-label="Switch language">Español</button>
+  </header>
+  <main class="detalle" id="detalle" aria-live="polite">
+    <div class="estado" data-i18n="dLoading">Loading details…</div>
+  </main>
+
+  <script src="idioma.js"></script>
+  <script>
+    const API = "https://pokeapi.co/api/v2";
+    const ARTE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
+    const $ = (id) => document.getElementById(id);
+    const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const idDe = (url) => Number(url.split("/").filter(Boolean).pop());
+
+    async function pedir(url) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`Error ${r.status}`);
+      return r.json();
+    }
+
+    // Recorre la cadena de evolución (viene anidada) y la convierte en una lista plana
+    function aplanar(nodo, lista = []) {
+      lista.push({ name: nodo.species.name, id: idDe(nodo.species.url) });
+      nodo.evolves_to.forEach((siguiente) => aplanar(siguiente, lista));
+      return lista;
+    }
+
+    function volver() {
+      if (document.referrer.includes("pagina2.html") && history.length > 1) history.back();
+      else location.href = "pagina2.html";
+    }
+
+    async function cargar() {
+      const id = Number(new URLSearchParams(location.search).get("id"));
+      if (!Number.isInteger(id) || id < 1) {
+        $("detalle").innerHTML = `<div class="estado error">${t("dNoId")}<br><button class="accion" onclick="volver()">${t("back")}</button></div>`;
+        return;
+      }
+      try {
+        // Endpoint 1: /pokemon/{id}  ·  Endpoint 2: /pokemon-species/{id}  ·  Endpoint 3: /evolution-chain/{id}
+        const [d, especie] = await Promise.all([pedir(`${API}/pokemon/${id}`), pedir(`${API}/pokemon-species/${id}`)]);
+        const cadena = await pedir(especie.evolution_chain.url);
+        const evoluciones = aplanar(cadena.chain);
+
+        const entrada = especie.flavor_text_entries.find((e) => e.language.name === idioma)
+          || especie.flavor_text_entries.find((e) => e.language.name === "en");
+        const texto = entrada ? entrada.flavor_text.replace(/[\n\f]/g, " ") : t("noDesc");
+        const generoEs = especie.genera.find((g) => g.language.name === idioma);
+        const img = d.sprites.other["official-artwork"].front_default || d.sprites.front_default;
+        document.title = `${d.name} · Pokédex`;
+
+        const chips = d.types.map((tp) => `<span class="chip">${esc(nombreTipo(tp.type.name))}</span>`).join("");
+        const habilidades = d.abilities.map((a) => esc(a.ability.name)).join(", ");
+        const stats = d.stats.map(({ base_stat, stat }) => `
+          <div class="barra-stat">
+            <span>${esc(nombreStat(stat.name))}</span>
+            <div class="pista"><i style="width:${Math.min(100, (base_stat / 255) * 100)}%"></i></div>
+            <b>${base_stat}</b>
+          </div>`).join("");
+        const evos = evoluciones.map((e) => `
+          <a class="evo ${e.id === id ? "actual" : ""}" href="detalle.html?id=${e.id}">
+            <img src="${ARTE}${e.id}.png" alt="${esc(e.name)}" loading="lazy"><br>${esc(e.name)}
+          </a>`).join("");
+
+        $("detalle").innerHTML = `
+          <div class="detalle-grid">
+            <div class="foto"><img src="${esc(img)}" alt="${esc(d.name)}"></div>
+            <div>
+              <span class="num">${esc(t("no", { n: String(d.id).padStart(3, "0") }))}${generoEs ? " · " + esc(generoEs.genus) : ""}</span>
+              <h1>${esc(d.name)}</h1>
+              <div class="chips">${chips}</div>
+              <p>${esc(texto)}</p>
+              <div class="datos">
+                <div class="dato"><span>${t("height")}</span>${(d.height / 10).toFixed(1)} m</div>
+                <div class="dato"><span>${t("weight")}</span>${(d.weight / 10).toFixed(1)} kg</div>
+                <div class="dato"><span>${t("baseExp")}</span>${d.base_experience ?? "—"}</div>
+              </div>
+              <h2>${t("abilities")}</h2>
+              <p style="margin:0;text-transform:capitalize">${habilidades}</p>
+              <h2>${t("stats")}</h2>
+              ${stats}
+              <h2>${t("evolutions")}</h2>
+              <div class="evoluciones">${evos}</div>
+            </div>
+          </div>
+          <div class="pie"><button class="accion" onclick="volver()">${t("back")}</button></div>`;
+      } catch (e) {
+        console.error(e);
+        $("detalle").innerHTML = `<div class="estado error">${t("dErr")}<br><button class="accion" onclick="cargar()">${t("retry")}</button> <button class="accion" onclick="volver()">${t("back")}</button></div>`;
+      }
+    }
+    document.addEventListener("idiomaCambiado", cargar);
+    cargar();
+  </script>
+</body>
+</html>
