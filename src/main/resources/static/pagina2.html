@@ -4,7 +4,83 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pokédex · Academico</title>
-  <link rel="stylesheet" href="estilos.css">
+  <link rel="stylesheet" href="estilos.css?v=3">
+  <style>
+    :root {
+      --tinta: #241c18;
+      --tinta-suave: #3a2e28;
+      --fondo: #f9f6f0;
+      --tarjeta: #ffffff;
+      --acento: #c05621;
+      --acento-fondo: #faebe0;
+      --texto: #28211c;
+      --tenue: #74655a;
+      --borde: #e7dfd5;
+      --error: #b82e24;
+      /* Columnas del grid: 3 normal, 2 en pantalla pequeña, 4 en grande */
+      --columnas: 3;
+    }
+    @media (max-width: 768px)  { :root { --columnas: 2; } }
+    @media (min-width: 1280px) { :root { --columnas: 4; } }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; background: var(--fondo); color: var(--texto); line-height: 1.45; }
+    :focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+    .app { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar { background: var(--tinta); color: #fff; padding: 1.25rem 1rem; position: sticky; top: 0; height: 100vh; }
+    .sidebar h1 { font-size: 1.25rem; margin: 0 0 .15rem; }
+    .sidebar p { margin: 0 0 1.5rem; font-size: .85rem; color: #cebfb3; }
+    .sidebar nav { display: flex; flex-direction: column; gap: .25rem; }
+    .sidebar a { color: #ece3dc; text-decoration: none; padding: .6rem .75rem; border-radius: 8px; transition: background-color .15s ease, color .15s ease; }
+    .sidebar a:hover { background: var(--tinta-suave); color: #fff; }
+    .sidebar a[aria-current="page"] { background: var(--acento); color: #fff; font-weight: 600; }
+    .contenido { padding: 0 1.5rem 2rem; min-width: 0; }
+
+    .barra { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: .75rem; padding: 1rem 0; background: var(--fondo); }
+    .btn-menu { display: none; border: 1px solid var(--borde); background: var(--tarjeta); border-radius: 8px; padding: .55rem .7rem; font-size: 1.1rem; cursor: pointer; }
+    .buscador { position: relative; flex: 1; max-width: 520px; }
+    .buscador svg { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--tenue); }
+    .buscador input { width: 100%; padding: .7rem .9rem .7rem 2.5rem; border: 1px solid var(--borde); border-radius: 999px; font-size: 1rem; background: var(--tarjeta); color: var(--texto); transition: border-color .15s ease, box-shadow .15s ease; }
+    .buscador input:focus { outline: none; border-color: var(--acento); box-shadow: 0 0 0 3px rgba(192, 86, 33, 0.15); }
+    .aviso { font-size: .9rem; color: var(--acento); font-weight: 600; white-space: nowrap; }
+
+    .titulo { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: .25rem 0 1rem; }
+    .titulo h2 { margin: 0; font-size: 1.5rem; }
+    .tenue { color: var(--tenue); font-size: .95rem; }
+
+    .grid { display: grid; grid-template-columns: repeat(var(--columnas), minmax(0, 1fr)); gap: 1rem; }
+    a.tarjeta { display: block; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 12px; overflow: hidden; color: inherit; text-decoration: none; min-width: 0; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+    a.tarjeta:hover { border-color: var(--acento); box-shadow: 0 4px 14px rgba(36, 28, 24, 0.08); transform: translateY(-2px); }
+    .foto { background: var(--acento-fondo); aspect-ratio: 1 / 1; display: grid; place-items: center; }
+    .foto img { width: 80%; height: 80%; object-fit: contain; }
+    .cuerpo { padding: .85rem 1rem 1rem; }
+    .cuerpo h3 { margin: 0; font-size: 1.05rem; text-transform: capitalize; overflow-wrap: anywhere; }
+    .num { font-size: .8rem; color: var(--tenue); }
+    .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin: .5rem 0; }
+    .chip { background: var(--acento-fondo); color: var(--acento); font-size: .8rem; font-weight: 600; padding: .15rem .6rem; border-radius: 999px; }
+    .desc { margin: 0; font-size: .88rem; color: var(--tenue); }
+
+    .estado { grid-column: 1 / -1; text-align: center; padding: 2.5rem 1rem; background: var(--tarjeta); border: 1px dashed var(--borde); border-radius: 12px; color: var(--tenue); }
+    .estado.error { color: var(--error); border-color: var(--error); }
+    button.accion { margin-top: .75rem; padding: .6rem 1.2rem; border: none; border-radius: 8px; background: var(--acento); color: #fff; font-size: .95rem; font-weight: 600; cursor: pointer; transition: background-color .15s ease; }
+    button.accion:hover { background: #ab4b1c; }
+    .mas { text-align: center; margin-top: 1.25rem; }
+
+    @media (max-width: 768px) {
+      .app { grid-template-columns: minmax(0, 1fr); }
+      .sidebar { position: fixed; z-index: 30; left: 0; top: 0; width: 240px; transform: translateX(-100%); transition: transform .2s; }
+      .sidebar.abierto { transform: none; }
+      .btn-menu { display: block; }
+      .contenido { padding: 0 .85rem 1.5rem; }
+      .cuerpo { padding: .65rem .75rem .8rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { .sidebar { transition: none; } }
+
+    /* Botón de idioma */
+    .btn-idioma { margin-left: auto; border: 1px solid var(--borde); background: var(--tarjeta); color: var(--texto); border-radius: 999px; padding: .5rem .9rem; font-size: .9rem; font-weight: 600; cursor: pointer; transition: border-color .15s ease, color .15s ease; }
+    .btn-idioma:hover { border-color: var(--acento); color: var(--acento); }
+  </style>
 </head>
 <body>
   <div class="app">

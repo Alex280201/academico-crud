@@ -4,18 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Students · Academico</title>
+  <link rel="stylesheet" href="estilos.css?v=3">
   <style>
     :root {
-      --tinta: #17324d;
-      --tinta-suave: #234669;
-      --fondo: #f3f6f9;
+      --tinta: #241c18;
+      --tinta-suave: #3a2e28;
+      --fondo: #f9f6f0;
       --tarjeta: #ffffff;
-      --acento: #1f7a8c;
-      --acento-fondo: #e1f1f4;
-      --texto: #1b2733;
-      --tenue: #5b6b79;
-      --borde: #d8e0e7;
-      --error: #b3261e;
+      --acento: #c05621;
+      --acento-fondo: #faebe0;
+      --texto: #28211c;
+      --tenue: #74655a;
+      --borde: #e7dfd5;
+      --error: #b82e24;
       /* Columnas del grid: 3 por defecto, 2 en pantalla pequeña, 4 en grande */
       --columnas: 3;
     }
@@ -44,15 +45,16 @@
       height: 100vh;
     }
     .sidebar h1 { font-size: 1.25rem; margin: 0 0 .15rem; }
-    .sidebar p  { margin: 0 0 1.5rem; font-size: .85rem; color: #b9c8d8; }
+    .sidebar p  { margin: 0 0 1.5rem; font-size: .85rem; color: #cebfb3; }
     .sidebar nav { display: flex; flex-direction: column; gap: .25rem; }
     .sidebar a {
-      color: #dbe6f1;
+      color: #ece3dc;
       text-decoration: none;
       padding: .6rem .75rem;
       border-radius: 8px;
+      transition: background-color .15s ease, color .15s ease;
     }
-    .sidebar a:hover { background: var(--tinta-suave); }
+    .sidebar a:hover { background: var(--tinta-suave); color: #fff; }
     .sidebar a[aria-current="page"] { background: var(--acento); color: #fff; font-weight: 600; }
 
     .contenido { padding: 0 1.5rem 2rem; min-width: 0; }
@@ -91,6 +93,12 @@
       font-size: 1rem;
       background: var(--tarjeta);
       color: var(--texto);
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .buscador input:focus {
+      outline: none;
+      border-color: var(--acento);
+      box-shadow: 0 0 0 3px rgba(192, 86, 33, 0.15);
     }
     .tiempo-real { font-size: .85rem; color: var(--tenue); white-space: nowrap; }
 
@@ -111,8 +119,13 @@
       padding: 1rem;
       cursor: pointer;
       min-width: 0;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
     }
-    .tarjeta:hover { border-color: var(--acento); }
+    .tarjeta:hover {
+      border-color: var(--acento);
+      box-shadow: 0 4px 14px rgba(36, 28, 24, 0.08);
+      transform: translateY(-2px);
+    }
     .tarjeta-cabeza { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; min-width: 0; }
     .inicial {
       flex: none;
@@ -149,13 +162,16 @@
       background: var(--acento);
       color: #fff;
       font-size: .95rem;
+      font-weight: 600;
       cursor: pointer;
+      transition: background-color .15s ease;
     }
+    .estado button:hover { background: #ab4b1c; }
 
     /* Ventana de detalle */
     .fondo-modal {
       position: fixed; inset: 0;
-      background: rgba(23, 50, 77, .55);
+      background: rgba(36, 28, 24, .6);
       display: none;
       align-items: center; justify-content: center;
       padding: 1rem;
@@ -168,6 +184,7 @@
       width: 100%; max-width: 460px;
       max-height: 90vh; overflow: auto;
       padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(36, 28, 24, 0.2);
       animation: aparece .18s ease-out;
     }
     @keyframes aparece { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -177,11 +194,15 @@
     .btn-idioma {
       margin-left: auto; border: 1px solid var(--borde); background: var(--tarjeta); color: var(--texto);
       border-radius: 999px; padding: .5rem .9rem; font-size: .9rem; font-weight: 600; cursor: pointer;
+      transition: border-color .15s ease, color .15s ease;
     }
+    .btn-idioma:hover { border-color: var(--acento); color: var(--acento); }
     .btn-nuevo {
       padding: .6rem 1.1rem; border: none; border-radius: 999px;
       background: var(--acento); color: #fff; font-size: .95rem; font-weight: 600; cursor: pointer;
+      transition: background-color .15s ease;
     }
+    .btn-nuevo:hover { background: #ab4b1c; }
     .titulo-acciones { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
     .modal h3#modalNombre { margin: 0; }
     .campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-top: 1rem; }
@@ -189,17 +210,26 @@
     .campo input {
       padding: .6rem .7rem; border: 1px solid var(--borde); border-radius: 8px;
       font-size: 1rem; color: var(--texto); background: #fff; width: 100%;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .campo input:focus {
+      outline: none;
+      border-color: var(--acento);
+      box-shadow: 0 0 0 3px rgba(192, 86, 33, 0.15);
     }
     .acciones { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.25rem; }
     .acciones button {
       flex: 1; padding: .7rem; border-radius: 8px; border: 1px solid transparent;
       font-size: 1rem; cursor: pointer;
+      transition: background-color .15s ease, opacity .15s ease;
     }
     .acciones button:disabled { opacity: .6; cursor: wait; }
-    .principal { background: var(--acento); color: #fff; }
-    .sec { background: var(--acento-fondo); color: var(--acento); }
-    .peligro { background: #fff; color: var(--error); border-color: var(--error) !important; }
+    .principal { background: var(--acento); color: #fff; font-weight: 600; }
+    .principal:hover { background: #ab4b1c; }
+    .sec { background: var(--acento-fondo); color: var(--acento); font-weight: 600; }
+    .peligro { background: #fff; color: var(--error); border-color: var(--error) !important; font-weight: 600; }
     .cerrar { background: var(--tinta); color: #fff; }
+    .cerrar:hover { background: var(--tinta-suave); }
     .toast {
       position: fixed; left: 50%; bottom: 1.25rem; transform: translateX(-50%);
       background: var(--tinta); color: #fff; padding: .7rem 1.1rem; border-radius: 10px;
@@ -398,17 +428,17 @@
       $("btnCerrar").focus();
       $("btnCerrar").addEventListener("click", cerrarDetalle);
       $("btnEditar").addEventListener("click", () => abrirFormulario(est));
-      $("btnEliminar").addEventListener("click", () => eliminar(est));
+      $("btnEliminar").addEventListener("click", () => confirmarEliminar(est));
     }
     const cerrarDetalle = () => $("fondoModal").classList.remove("abierto");
 
     // ---- Agregar, editar y eliminar ----
     function mostrarAviso(texto, error = false) {
-      const t = $("toast");
-      t.textContent = texto;
-      t.className = "toast visible" + (error ? " error" : "");
+      const toastEl = $("toast");
+      toastEl.textContent = texto;
+      toastEl.className = "toast visible" + (error ? " error" : "");
       clearTimeout(mostrarAviso.id);
-      mostrarAviso.id = setTimeout(() => { t.className = "toast"; }, 3500);
+      mostrarAviso.id = setTimeout(() => { toastEl.className = "toast"; }, 3500);
     }
 
     // [campo, etiqueta, tipo de input]; los que llevan * son obligatorios
@@ -473,18 +503,30 @@
       }
     }
 
-    async function eliminar(est) {
-      if (!confirm(t("confirmDel", { name: est.nomEstudiante }))) return;
-      try {
-        const respuesta = await fetch(`${API}/${est.numMatricula}`, { method: "DELETE" });
-        if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
-        cerrarDetalle();
-        mostrarAviso(t("deleted"));
-        await cargarEstudiantes();
-      } catch (error) {
-        console.error("No se pudo eliminar:", error);
-        mostrarAviso(t("delFail", { msg: error.message }), true);
-      }
+    // ---- Confirmación de eliminación en ventana emergente cálida ----
+    function confirmarEliminar(est) {
+      $("modal").innerHTML = `
+        <h3 id="modalNombre" style="color:var(--error);">${esc(t("confirmDel", { name: est.nomEstudiante }))}</h3>
+        <p style="color:var(--tenue);margin:1rem 0 1.5rem;font-size:.95rem;">${esc(t("idLabel", { id: est.numMatricula }))} · ${esc(t("fCedula"))}: ${esc(est.numCedula || "—")}</p>
+        <div class="acciones">
+          <button type="button" class="peligro" id="btnConfirmarDel">${t("del")}</button>
+          <button type="button" class="cerrar" id="btnCancelarDel">${t("cancel")}</button>
+        </div>`;
+      $("fondoModal").classList.add("abierto");
+      $("btnCancelarDel").focus();
+      $("btnCancelarDel").addEventListener("click", () => abrirDetalle(est.numMatricula));
+      $("btnConfirmarDel").addEventListener("click", async () => {
+        try {
+          const respuesta = await fetch(`${API}/${est.numMatricula}`, { method: "DELETE" });
+          if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
+          cerrarDetalle();
+          mostrarAviso(t("deleted"));
+          await cargarEstudiantes();
+        } catch (error) {
+          console.error("No se pudo eliminar:", error);
+          mostrarAviso(t("delFail", { msg: error.message }), true);
+        }
+      });
     }
 
     // Eventos

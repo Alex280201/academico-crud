@@ -1,0 +1,23 @@
+{
+  "name": "academico",
+  "version": "1.0.0",
+  "description": "Aplicación web desarrollada con Java y Spring Boot, conectada a una base de datos PostgreSQL. El proyecto permite consultar estudiantes mediante tarjetas y explorar información de Pokémon utilizando la PokéAPI.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alex280201/academico-crud.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Alex280201/academico-crud/issues"
+  },
+  "homepage": "https://github.com/Alex280201/academico-crud#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5"
+  }
+}
