@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Detalle · Pokédex</title>
   <link rel="stylesheet" href="estilos.css?v=3">
+
   <style>
     :root {
       --tinta: #241c18;
@@ -18,137 +19,511 @@
       --borde: #e7dfd5;
       --error: #b82e24;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; background: var(--fondo); color: var(--texto); line-height: 1.45; }
-    :focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
 
-    .detalle { max-width: 900px; margin: 0 auto; padding: 1.25rem; }
-    .detalle-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 1.5rem; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 14px; padding: 1.25rem; box-shadow: 0 4px 18px rgba(36, 28, 24, 0.05); }
-    .detalle h1 { margin: 0; text-transform: capitalize; font-size: 1.8rem; }
-    .detalle h2 { font-size: 1.05rem; margin: 1.25rem 0 .5rem; }
-    .detalle .foto { border-radius: 12px; background: var(--acento-fondo); aspect-ratio: 1 / 1; display: grid; place-items: center; }
-    .detalle .foto img { width: 80%; height: 80%; object-fit: contain; }
-    .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin: .5rem 0; }
-    .chip { background: var(--acento-fondo); color: var(--acento); font-size: .8rem; font-weight: 600; padding: .15rem .6rem; border-radius: 999px; }
-    .num { font-size: .8rem; color: var(--tenue); }
-    .datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin-top: .75rem; }
-    .dato { background: var(--fondo); border-radius: 8px; padding: .5rem .65rem; }
-    .dato span { display: block; font-size: .78rem; color: var(--tenue); }
-    .barra-stat { display: grid; grid-template-columns: 110px 1fr 40px; align-items: center; gap: .5rem; font-size: .9rem; margin: .3rem 0; }
-    .pista { background: var(--borde); border-radius: 999px; height: 8px; overflow: hidden; }
-    .pista i { display: block; height: 100%; background: var(--acento); }
-    .evoluciones { display: flex; flex-wrap: wrap; gap: .75rem; }
-    .evo { width: 96px; text-align: center; text-decoration: none; color: inherit; font-size: .85rem; text-transform: capitalize; }
-    .evo img { width: 96px; height: 96px; object-fit: contain; background: var(--acento-fondo); border-radius: 10px; transition: transform .15s ease; }
-    .evo:hover img { transform: scale(1.05); }
-    .evo.actual img { outline: 3px solid var(--acento); }
-    .pie { display: flex; justify-content: flex-end; margin-top: 1rem; }
-    .pie button { margin: 0; }
-    button.accion { margin-top: .75rem; padding: .6rem 1.2rem; border: none; border-radius: 8px; background: var(--acento); color: #fff; font-size: .95rem; font-weight: 600; cursor: pointer; transition: background-color .15s ease; }
-    button.accion:hover { background: #ab4b1c; }
-    .estado { text-align: center; padding: 2.5rem 1rem; background: var(--tarjeta); border: 1px dashed var(--borde); border-radius: 12px; color: var(--tenue); }
-    .estado.error { color: var(--error); border-color: var(--error); }
-    .btn-idioma { margin-left: auto; border: 1px solid var(--borde); background: var(--tarjeta); color: var(--texto); border-radius: 999px; padding: .5rem .9rem; font-size: .9rem; font-weight: 600; cursor: pointer; transition: border-color .15s ease, color .15s ease; }
-    .btn-idioma:hover { border-color: var(--acento); color: var(--acento); }
-    .barra-idioma { max-width: 900px; margin: 0 auto; padding: 1rem 1.25rem 0; display: flex; justify-content: flex-end; }
-    @media (max-width: 768px) { .detalle-grid { grid-template-columns: minmax(0, 1fr); } }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+      background: var(--fondo);
+      color: var(--texto);
+      line-height: 1.45;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--acento);
+      outline-offset: 2px;
+    }
+
+    .detalle {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+
+    .detalle-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+      gap: 1.5rem;
+      background: var(--tarjeta);
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      padding: 1.25rem;
+      box-shadow: 0 4px 18px rgba(36, 28, 24, 0.05);
+    }
+
+    .detalle h1 {
+      margin: 0;
+      text-transform: capitalize;
+      font-size: 1.8rem;
+    }
+
+    .detalle h2 {
+      font-size: 1.05rem;
+      margin: 1.25rem 0 .5rem;
+    }
+
+    .detalle .foto {
+      border-radius: 12px;
+      background: var(--acento-fondo);
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .detalle .foto img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .35rem;
+      margin: .5rem 0;
+    }
+
+    .chip {
+      background: var(--acento-fondo);
+      color: var(--acento);
+      font-size: .8rem;
+      font-weight: 600;
+      padding: .15rem .6rem;
+      border-radius: 999px;
+    }
+
+    .num {
+      font-size: .8rem;
+      color: var(--tenue);
+    }
+
+    .datos {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .5rem;
+      margin-top: .75rem;
+    }
+
+    .dato {
+      background: var(--fondo);
+      border-radius: 8px;
+      padding: .5rem .65rem;
+    }
+
+    .dato span {
+      display: block;
+      font-size: .78rem;
+      color: var(--tenue);
+    }
+
+    .barra-stat {
+      display: grid;
+      grid-template-columns: 110px 1fr 40px;
+      align-items: center;
+      gap: .5rem;
+      font-size: .9rem;
+      margin: .3rem 0;
+    }
+
+    .pista {
+      background: var(--borde);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+    }
+
+    .pista i {
+      display: block;
+      height: 100%;
+      background: var(--acento);
+    }
+
+    .evoluciones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+    }
+
+    .evo {
+      width: 110px;
+      text-align: center;
+      text-decoration: none;
+      color: inherit;
+      font-size: .85rem;
+      text-transform: capitalize;
+    }
+
+    .evo img {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      background: var(--acento-fondo);
+      border-radius: 10px;
+      transition: transform .15s ease;
+    }
+
+    .evo:hover img {
+      transform: scale(1.05);
+    }
+
+    .evo.actual img {
+      outline: 3px solid var(--acento);
+    }
+
+    .evo .tipos-evo {
+      display: block;
+      margin-top: .2rem;
+      color: var(--tenue);
+      font-size: .75rem;
+    }
+
+    .pie {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1rem;
+    }
+
+    .pie button {
+      margin: 0;
+    }
+
+    button.accion {
+      margin-top: .75rem;
+      padding: .6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--acento);
+      color: #fff;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color .15s ease;
+    }
+
+    button.accion:hover {
+      background: #ab4b1c;
+    }
+
+    .estado {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      background: var(--tarjeta);
+      border: 1px dashed var(--borde);
+      border-radius: 12px;
+      color: var(--tenue);
+    }
+
+    .estado.error {
+      color: var(--error);
+      border-color: var(--error);
+    }
+
+    .btn-idioma {
+      margin-left: auto;
+      border: 1px solid var(--borde);
+      background: var(--tarjeta);
+      color: var(--texto);
+      border-radius: 999px;
+      padding: .5rem .9rem;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color .15s ease, color .15s ease;
+    }
+
+    .btn-idioma:hover {
+      border-color: var(--acento);
+      color: var(--acento);
+    }
+
+    .barra-idioma {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    @media (max-width: 768px) {
+      .detalle-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .barra-stat {
+        grid-template-columns: 90px 1fr 35px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <header class="barra-idioma">
-    <button type="button" class="btn-idioma" id="btnIdioma" data-i18n-aria="cambiarIdioma" aria-label="Switch language">Español</button>
-  </header>
-  <main class="detalle" id="detalle" aria-live="polite">
-    <div class="estado" data-i18n="dLoading">Loading details…</div>
-  </main>
+<header class="barra-idioma">
+  <button
+          type="button"
+          class="btn-idioma"
+          id="btnIdioma"
+          data-i18n-aria="cambiarIdioma"
+          aria-label="Switch language">
+    Español
+  </button>
+</header>
 
-  <script src="idioma.js"></script>
-  <script>
-    const API = "https://pokeapi.co/api/v2";
-    const ARTE = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/";
-    const $ = (id) => document.getElementById(id);
-    const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    const idDe = (url) => Number(url.split("/").filter(Boolean).pop());
+<main class="detalle" id="detalle" aria-live="polite">
+  <div class="estado" data-i18n="dLoading">Loading details…</div>
+</main>
 
-    async function pedir(url) {
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(`Error ${r.status}`);
-      return r.json();
+<script src="idioma.js"></script>
+
+<script>
+  const API = "https://pokeapi.co/api/v2";
+
+  const $ = (id) => document.getElementById(id);
+
+  const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
+
+  const idDe = (url) => Number(url.split("/").filter(Boolean).pop());
+
+  async function pedir(url) {
+    const r = await fetch(url);
+
+    if (!r.ok) {
+      throw new Error(`Error ${r.status}`);
     }
 
-    // Recorre la cadena de evolución (viene anidada) y la convierte en una lista plana
-    function aplanar(nodo, lista = []) {
-      lista.push({ name: nodo.species.name, id: idDe(nodo.species.url) });
-      nodo.evolves_to.forEach((siguiente) => aplanar(siguiente, lista));
-      return lista;
+    return r.json();
+  }
+
+  // Convierte la cadena de evoluciones anidada en una lista plana.
+  function aplanar(nodo, lista = []) {
+    lista.push({
+      name: nodo.species.name,
+      id: idDe(nodo.species.url)
+    });
+
+    nodo.evolves_to.forEach((siguiente) => aplanar(siguiente, lista));
+
+    return lista;
+  }
+
+  function volver() {
+    if (
+            document.referrer.includes("pagina2.html") &&
+            history.length > 1
+    ) {
+      history.back();
+    } else {
+      location.href = "pagina2.html";
+    }
+  }
+
+  async function cargar() {
+    const id = Number(new URLSearchParams(location.search).get("id"));
+
+    if (!Number.isInteger(id) || id < 1) {
+      $("detalle").innerHTML = `
+                <div class="estado error">
+                    ${t("dNoId")}
+                    <br>
+                    <button class="accion" onclick="volver()">
+                        ${t("back")}
+                    </button>
+                </div>
+            `;
+      return;
     }
 
-    function volver() {
-      if (document.referrer.includes("pagina2.html") && history.length > 1) history.back();
-      else location.href = "pagina2.html";
+    try {
+      // Endpoint 1: obtener los datos del Pokémon.
+      const d = await pedir(`${API}/pokemon/${id}`);
+
+      // Endpoint 2: obtener la especie usando la URL del Pokémon.
+      const especie = await pedir(d.species.url);
+
+      // Endpoint 3: obtener la cadena usando la URL de la especie.
+      const cadena = await pedir(especie.evolution_chain.url);
+
+      // Aplanar la cadena de evoluciones.
+      const evoluciones = aplanar(cadena.chain);
+
+      // Obtener los datos reales de cada Pokémon de la evolución.
+      const datosEvo = await Promise.all(
+              evoluciones.map((e) => pedir(`${API}/pokemon/${e.name}`))
+      );
+
+      const entrada =
+              especie.flavor_text_entries.find(
+                      (e) => e.language.name === idioma
+              ) ||
+              especie.flavor_text_entries.find(
+                      (e) => e.language.name === "en"
+              );
+
+      const texto = entrada
+              ? entrada.flavor_text.replace(/[\n\f]/g, " ")
+              : t("noDesc");
+
+      const generoEs = especie.genera.find(
+              (g) => g.language.name === idioma
+      );
+
+      const img =
+              d.sprites.other["official-artwork"].front_default ||
+              d.sprites.front_default;
+
+      document.title = `${d.name} · Pokédex`;
+
+      const chips = d.types
+              .map(
+                      (tp) =>
+                              `<span class="chip">${esc(nombreTipo(tp.type.name))}</span>`
+              )
+              .join("");
+
+      const habilidades = d.abilities
+              .map((a) => esc(a.ability.name))
+              .join(", ");
+
+      const stats = d.stats
+              .map(
+                      ({ base_stat, stat }) => `
+                        <div class="barra-stat">
+                            <span>${esc(nombreStat(stat.name))}</span>
+                            <div class="pista">
+                                <i style="width:${Math.min(
+                              100,
+                              (base_stat / 255) * 100
+                      )}%"></i>
+                            </div>
+                            <b>${base_stat}</b>
+                        </div>
+                    `
+              )
+              .join("");
+
+      // Crear las tarjetas con imágenes oficiales y tipos reales.
+      const evos = evoluciones
+              .map((e, i) => {
+                const pokemonEvo = datosEvo[i];
+
+                const imagen =
+                        pokemonEvo.sprites.other["official-artwork"]
+                                .front_default ||
+                        pokemonEvo.sprites.front_default ||
+                        "";
+
+                const tipos = pokemonEvo.types
+                        .map((tp) => nombreTipo(tp.type.name))
+                        .join(", ");
+
+                return `
+                        <a
+                            class="evo ${e.id === id ? "actual" : ""}"
+                            href="detalle.html?id=${e.id}"
+                            aria-label="${esc(e.name)}">
+
+                            <img
+                                src="${esc(imagen)}"
+                                alt="${esc(e.name)}"
+                                loading="lazy">
+
+                            <span>${esc(e.name)}</span>
+
+                            <span class="tipos-evo">
+                                ${esc(tipos)}
+                            </span>
+                        </a>
+                    `;
+              })
+              .join("");
+
+      $("detalle").innerHTML = `
+                <div class="detalle-grid">
+                    <div class="foto">
+                        <img src="${esc(img)}" alt="${esc(d.name)}">
+                    </div>
+
+                    <div>
+                        <span class="num">
+                            ${esc(t("no", {
+        n: String(d.id).padStart(3, "0")
+      }))}
+                            ${generoEs ? " · " + esc(generoEs.genus) : ""}
+                        </span>
+
+                        <h1>${esc(d.name)}</h1>
+
+                        <div class="chips">${chips}</div>
+
+                        <p>${esc(texto)}</p>
+
+                        <div class="datos">
+                            <div class="dato">
+                                <span>${t("height")}</span>
+                                ${(d.height / 10).toFixed(1)} m
+                            </div>
+
+                            <div class="dato">
+                                <span>${t("weight")}</span>
+                                ${(d.weight / 10).toFixed(1)} kg
+                            </div>
+
+                            <div class="dato">
+                                <span>${t("baseExp")}</span>
+                                ${d.base_experience ?? "—"}
+                            </div>
+                        </div>
+
+                        <h2>${t("abilities")}</h2>
+                        <p style="margin:0;text-transform:capitalize">
+                            ${habilidades}
+                        </p>
+
+                        <h2>${t("stats")}</h2>
+                        ${stats}
+
+                        <h2>${t("evolutions")}</h2>
+                        <div class="evoluciones">${evos}</div>
+                    </div>
+                </div>
+
+                <div class="pie">
+                    <button class="accion" onclick="volver()">
+                        ${t("back")}
+                    </button>
+                </div>
+            `;
+    } catch (e) {
+      console.error(e);
+
+      $("detalle").innerHTML = `
+                <div class="estado error">
+                    ${t("dErr")}
+                    <br>
+
+                    <button class="accion" onclick="cargar()">
+                        ${t("retry")}
+                    </button>
+
+                    <button class="accion" onclick="volver()">
+                        ${t("back")}
+                    </button>
+                </div>
+            `;
     }
+  }
 
-    async function cargar() {
-      const id = Number(new URLSearchParams(location.search).get("id"));
-      if (!Number.isInteger(id) || id < 1) {
-        $("detalle").innerHTML = `<div class="estado error">${t("dNoId")}<br><button class="accion" onclick="volver()">${t("back")}</button></div>`;
-        return;
-      }
-      try {
-        // Endpoint 1: /pokemon/{id}  ·  Endpoint 2: /pokemon-species/{id}  ·  Endpoint 3: /evolution-chain/{id}
-        const [d, especie] = await Promise.all([pedir(`${API}/pokemon/${id}`), pedir(`${API}/pokemon-species/${id}`)]);
-        const cadena = await pedir(especie.evolution_chain.url);
-        const evoluciones = aplanar(cadena.chain);
+  document.addEventListener("idiomaCambiado", cargar);
 
-        const entrada = especie.flavor_text_entries.find((e) => e.language.name === idioma)
-          || especie.flavor_text_entries.find((e) => e.language.name === "en");
-        const texto = entrada ? entrada.flavor_text.replace(/[\n\f]/g, " ") : t("noDesc");
-        const generoEs = especie.genera.find((g) => g.language.name === idioma);
-        const img = d.sprites.other["official-artwork"].front_default || d.sprites.front_default;
-        document.title = `${d.name} · Pokédex`;
-
-        const chips = d.types.map((tp) => `<span class="chip">${esc(nombreTipo(tp.type.name))}</span>`).join("");
-        const habilidades = d.abilities.map((a) => esc(a.ability.name)).join(", ");
-        const stats = d.stats.map(({ base_stat, stat }) => `
-          <div class="barra-stat">
-            <span>${esc(nombreStat(stat.name))}</span>
-            <div class="pista"><i style="width:${Math.min(100, (base_stat / 255) * 100)}%"></i></div>
-            <b>${base_stat}</b>
-          </div>`).join("");
-        const evos = evoluciones.map((e) => `
-          <a class="evo ${e.id === id ? "actual" : ""}" href="detalle.html?id=${e.id}">
-            <img src="${ARTE}${e.id}.png" alt="${esc(e.name)}" loading="lazy"><br>${esc(e.name)}
-          </a>`).join("");
-
-        $("detalle").innerHTML = `
-          <div class="detalle-grid">
-            <div class="foto"><img src="${esc(img)}" alt="${esc(d.name)}"></div>
-            <div>
-              <span class="num">${esc(t("no", { n: String(d.id).padStart(3, "0") }))}${generoEs ? " · " + esc(generoEs.genus) : ""}</span>
-              <h1>${esc(d.name)}</h1>
-              <div class="chips">${chips}</div>
-              <p>${esc(texto)}</p>
-              <div class="datos">
-                <div class="dato"><span>${t("height")}</span>${(d.height / 10).toFixed(1)} m</div>
-                <div class="dato"><span>${t("weight")}</span>${(d.weight / 10).toFixed(1)} kg</div>
-                <div class="dato"><span>${t("baseExp")}</span>${d.base_experience ?? "—"}</div>
-              </div>
-              <h2>${t("abilities")}</h2>
-              <p style="margin:0;text-transform:capitalize">${habilidades}</p>
-              <h2>${t("stats")}</h2>
-              ${stats}
-              <h2>${t("evolutions")}</h2>
-              <div class="evoluciones">${evos}</div>
-            </div>
-          </div>
-          <div class="pie"><button class="accion" onclick="volver()">${t("back")}</button></div>`;
-      } catch (e) {
-        console.error(e);
-        $("detalle").innerHTML = `<div class="estado error">${t("dErr")}<br><button class="accion" onclick="cargar()">${t("retry")}</button> <button class="accion" onclick="volver()">${t("back")}</button></div>`;
-      }
-    }
-    document.addEventListener("idiomaCambiado", cargar);
-    cargar();
-  </script>
+  cargar();
+</script>
 </body>
 </html>
