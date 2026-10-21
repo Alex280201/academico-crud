@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pokédex · Academico</title>
   <link rel="stylesheet" href="estilos.css?v=3">
+  <!-- Cargar Lodash por CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
   <style>
     :root {
       --tinta: #241c18;
@@ -17,7 +19,6 @@
       --tenue: #74655a;
       --borde: #e7dfd5;
       --error: #b82e24;
-      /* Columnas del grid: 3 normal, 2 en pantalla pequeña, 4 en grande */
       --columnas: 3;
     }
     @media (max-width: 768px)  { :root { --columnas: 2; } }
@@ -35,14 +36,25 @@
     .sidebar a { color: #ece3dc; text-decoration: none; padding: .6rem .75rem; border-radius: 8px; transition: background-color .15s ease, color .15s ease; }
     .sidebar a:hover { background: var(--tinta-suave); color: #fff; }
     .sidebar a[aria-current="page"] { background: var(--acento); color: #fff; font-weight: 600; }
-    .contenido { padding: 0 1.5rem 2rem; min-width: 0; }
+    .contenido { padding: 0 1.5rem 2rem; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
 
     .barra { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: .75rem; padding: 1rem 0; background: var(--fondo); }
     .btn-menu { display: none; border: 1px solid var(--borde); background: var(--tarjeta); border-radius: 8px; padding: .55rem .7rem; font-size: 1.1rem; cursor: pointer; }
-    .buscador { position: relative; flex: 1; max-width: 520px; }
-    .buscador svg { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--tenue); }
-    .buscador input { width: 100%; padding: .7rem .9rem .7rem 2.5rem; border: 1px solid var(--borde); border-radius: 999px; font-size: 1rem; background: var(--tarjeta); color: var(--texto); transition: border-color .15s ease, box-shadow .15s ease; }
-    .buscador input:focus { outline: none; border-color: var(--acento); box-shadow: 0 0 0 3px rgba(192, 86, 33, 0.15); }
+
+    .form-buscador { position: relative; flex: 1; max-width: 520px; display: flex; align-items: center; }
+    .form-buscador svg { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--tenue); pointer-events: none; }
+    .form-buscador input { width: 100%; padding: .7rem 2.8rem .7rem 2.5rem; border: 1px solid var(--borde); border-radius: 999px; font-size: 1rem; background: var(--tarjeta); color: var(--texto); transition: border-color .15s ease, box-shadow .15s ease; }
+    .form-buscador input:focus { outline: none; border-color: var(--acento); box-shadow: 0 0 0 3px rgba(192, 86, 33, 0.15); }
+    .btn-lupa { position: absolute; right: 4px; background: var(--acento); border: none; border-radius: 50%; width: 34px; height: 34px; display: grid; place-items: center; color: #fff; cursor: pointer; transition: background-color .15s; }
+    .btn-lupa:hover { background: #ab4b1c; }
+    .btn-lupa svg { position: static; width: 16px; height: 16px; color: #fff; transform: none; }
+
+    .sugerencias-lista { position: absolute; top: 105%; left: 1rem; right: 1rem; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 12px; box-shadow: 0 6px 20px rgba(36, 28, 24, 0.12); z-index: 10; max-height: 280px; overflow-y: auto; display: none; }
+    .sugerencia-item { padding: .65rem 1rem; cursor: pointer; font-size: .95rem; border-bottom: 1px solid var(--borde); }
+    .sugerencia-item:last-child { border-bottom: none; }
+    .sugerencia-item:hover, .sugerencia-item.activo { background: var(--acento-fondo); color: var(--acento); }
+    .sugerencia-item strong { color: var(--acento); }
+
     .aviso { font-size: .9rem; color: var(--acento); font-weight: 600; white-space: nowrap; }
 
     .titulo { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: .25rem 0 1rem; }
@@ -51,7 +63,11 @@
 
     .grid { display: grid; grid-template-columns: repeat(var(--columnas), minmax(0, 1fr)); gap: 1rem; }
     a.tarjeta { display: block; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 12px; overflow: hidden; color: inherit; text-decoration: none; min-width: 0; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
-    a.tarjeta:hover { border-color: var(--acento); box-shadow: 0 4px 14px rgba(36, 28, 24, 0.08); transform: translateY(-2px); }
+
+    @media (hover: hover) {
+      a.tarjeta:hover { border-color: var(--acento); box-shadow: 0 6px 18px rgba(36, 28, 24, 0.12); transform: scale(1.07); }
+    }
+
     .foto { background: var(--acento-fondo); aspect-ratio: 1 / 1; display: grid; place-items: center; }
     .foto img { width: 80%; height: 80%; object-fit: contain; }
     .cuerpo { padding: .85rem 1rem 1rem; }
@@ -67,6 +83,9 @@
     button.accion:hover { background: #ab4b1c; }
     .mas { text-align: center; margin-top: 1.25rem; }
 
+    footer.endpoints-footer { margin-top: 3rem; padding: 1.25rem 0; border-top: 1px solid var(--borde); font-size: .85rem; color: var(--tenue); }
+    footer.endpoints-footer ul { margin: .5rem 0 0; padding-left: 1.25rem; }
+
     @media (max-width: 768px) {
       .app { grid-template-columns: minmax(0, 1fr); }
       .sidebar { position: fixed; z-index: 30; left: 0; top: 0; width: 240px; transform: translateX(-100%); transition: transform .2s; }
@@ -77,29 +96,35 @@
     }
     @media (prefers-reduced-motion: reduce) { .sidebar { transition: none; } }
 
-    /* Botón de idioma */
     .btn-idioma { margin-left: auto; border: 1px solid var(--borde); background: var(--tarjeta); color: var(--texto); border-radius: 999px; padding: .5rem .9rem; font-size: .9rem; font-weight: 600; cursor: pointer; transition: border-color .15s ease, color .15s ease; }
     .btn-idioma:hover { border-color: var(--acento); color: var(--acento); }
   </style>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar" id="sidebar">
-      <h1>Academico</h1>
-      <p data-i18n="appSub">Student management</p>
-      <nav aria-label="Main menu" data-i18n-aria="navAria">
-        <a href="pagina1.html" data-i18n="navStudents">Students</a>
-        <a href="pagina2.html" aria-current="page" data-i18n="navApi">Page 2 (public API)</a>
-      </nav>
-    </aside>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <h1>Academico</h1>
+    <p data-i18n="appSub">Student management</p>
+    <nav aria-label="Main menu" data-i18n-aria="navAria">
+      <a href="pagina1.html" data-i18n="navStudents">Students</a>
+      <a href="pagina2.html" aria-current="page" data-i18n="navApi">Page 2 (public API)</a>
+    </nav>
+  </aside>
 
-    <main class="contenido">
+  <main class="contenido">
+    <div>
       <div class="barra">
         <button class="btn-menu" id="btnMenu" aria-label="Open menu" data-i18n-aria="menu">☰</button>
-        <div class="buscador">
+
+        <form class="form-buscador" id="formBuscador" role="search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-          <input id="buscar" type="search" placeholder="Search Pokémon by name" aria-label="Search Pokémon" data-i18n-placeholder="p2Search" data-i18n-aria="p2SearchAria" autocomplete="off">
-        </div>
+          <input id="buscar" type="search" placeholder="Search Pokémon by name or ID" aria-label="Search Pokémon" autocomplete="off" maxlength="30" role="combobox" aria-expanded="false" aria-controls="sugerencias" aria-autocomplete="list">
+          <button type="submit" class="btn-lupa" id="btnLupa" aria-label="Buscar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          </button>
+          <div class="sugerencias-lista" id="sugerencias" role="listbox"></div>
+        </form>
+
         <span class="aviso" id="aviso" aria-live="polite"></span>
         <button type="button" class="btn-idioma" id="btnIdioma" data-i18n-aria="cambiarIdioma" aria-label="Switch language">Español</button>
       </div>
@@ -109,119 +134,290 @@
         <span class="tenue" id="contador" aria-live="polite"></span>
       </div>
 
-      <section class="grid" id="grid" aria-label="Pokémon list" data-i18n-aria="p2ListAria"></section>
+      <section class="grid" id="grid" aria-label="Pokémon list"></section>
       <div class="mas" id="mas"></div>
-    </main>
-  </div>
+    </div>
 
-  <script src="idioma.js"></script>
-  <script>
-    const API = "https://pokeapi.co/api/v2";
-    const TOTAL = 151;          // cuántos Pokémon se cargan en la lista
-    const POR_PAGINA = 20;      // cuántas tarjetas se muestran por vez
-    const RETRASO_MS = 4000;    // espera de la búsqueda: 4 segundos
+    <footer class="endpoints-footer">
+      <strong>PokéAPI Endpoints Used:</strong>
+      <ul>
+        <li><code>https://pokeapi.co/api/v2/pokemon?limit=2000</code> (Full catalog list)</li>
+        <li><code>https://pokeapi.co/api/v2/pokemon/{id or name}/</code> (Pokémon detailed info & sprites)</li>
+        <li><code>https://pokeapi.co/api/v2/pokemon-species/{id}/</code> (Species, category & legendary flags)</li>
+      </ul>
+    </footer>
+  </main>
+</div>
 
-    const $ = (id) => document.getElementById(id);
-    const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+<script src="idioma.js"></script>
+<script type="module">
+  import { api } from './api.js';
 
-    let todos = [];      // [{ name, id }] de /pokemon
-    let lista = [];      // resultado del filtro actual
-    let pagina = 1;
-    const cache = new Map();
+  const POR_PAGINA = 12;
+  const RETRASO_MS = 4000;
 
-    async function pedir(url) {
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(`Error ${r.status}`);
-      return r.json();
+  const $ = (id) => document.getElementById(id);
+  const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  let todos = [];
+  let lista = [];
+  let pagina = 1;
+  const cache = new Map();
+  let currentController = null;
+  let indiceSugerenciaActiva = -1;
+  let temporizadorBusqueda = null;
+  let intervaloCuenta = null;
+
+  async function obtenerDetallesCompletos(pokemonItem, signal) {
+    if (cache.has(pokemonItem.name)) return cache.get(pokemonItem.name);
+    try {
+      const pokeData = await api(pokemonItem.url, signal);
+      let category = "";
+      let isLegendaryOrMythical = false;
+      if (pokeData.species && pokeData.species.url) {
+        try {
+          const speciesData = await api(pokeData.species.url, signal);
+          isLegendaryOrMythical = speciesData.is_legendary || speciesData.is_mythical;
+          const generaEntry = speciesData.genera.find(g => g.language.name === "en") || speciesData.genera[0];
+          category = generaEntry ? generaEntry.genus : "";
+        } catch (err) {
+          if (err.name === 'AbortError') throw err;
+        }
+      }
+      const completo = { ...pokeData, category, isLegendaryOrMythical };
+      cache.set(pokemonItem.name, completo);
+      return completo;
+    } catch (e) {
+      if (e.name === 'AbortError') throw e;
+      return null;
     }
-    const idDe = (url) => Number(url.split("/").filter(Boolean).pop());
+  }
 
-    // Endpoint 1: /pokemon (lista) y /pokemon/{nombre} (datos de cada tarjeta)
-    async function datosDe(name) {
-      if (!cache.has(name)) cache.set(name, await pedir(`${API}/pokemon/${name}`));
-      return cache.get(name);
-    }
+  function tarjeta(d) {
+    if (!d) return "";
+    const { id, name, types, height, weight, sprites, category, isLegendaryOrMythical } = d;
 
-    function tarjeta(d) {
-      const { id, name, types, height, weight, sprites } = d;
-      const img = sprites.other["official-artwork"].front_default || sprites.front_default;
-      const chips = types.map((tp) => `<span class="chip">${esc(nombreTipo(tp.type.name))}</span>`).join("");
-      return `
-        <a class="tarjeta" href="detalle.html?id=${id}" aria-label="${esc(t("viewAria", { name }))}">
-          <div class="foto"><img src="${esc(img)}" alt="${esc(name)}" loading="lazy"></div>
+    const officialArt = sprites.other?.["official-artwork"]?.front_default;
+    const frontSprite = sprites.front_default;
+    const img = officialArt || frontSprite || "";
+    const imgTag = img ? `<img src="${esc(img)}" alt="${esc(name)}" loading="lazy" onerror="this.style.display='none'">` : "";
+
+    const chips = types.map((tp) => `<span class="chip">${esc(tp.type.name)}</span>`).join("");
+    const insignia = isLegendaryOrMythical ? `<span class="chip" style="background: #ffd700; color: #856404;">★ Legendary</span>` : "";
+
+    return `
+        <a class="tarjeta" href="detalle.html?id=${id}" aria-label="Ver detalles de ${esc(name)}">
+          <div class="foto">${imgTag}</div>
           <div class="cuerpo">
             <h3>${esc(name)}</h3>
-            <span class="num">${esc(t("no", { n: String(id).padStart(3, "0") }))}</span>
-            <div class="chips">${chips}</div>
-            <p class="desc">${t("cardDesc", { h: (height / 10).toFixed(1), w: (weight / 10).toFixed(1) })}</p>
+            <span class="num">#${String(id).padStart(3, "0")}</span>
+            <div class="chips">${chips} ${insignia}</div>
+            ${category ? `<p class="desc" style="font-weight:600; margin-bottom:4px;">${esc(category)}</p>` : ""}
+            <p class="desc">H: ${(height / 10).toFixed(1)}m | W: ${(weight / 10).toFixed(1)}kg</p>
           </div>
         </a>`;
+  }
+
+  async function dibujar() {
+    if (currentController) currentController.abort();
+    currentController = new AbortController();
+
+    const grid = $("grid");
+    const parte = lista.slice(0, pagina * POR_PAGINA);
+    $("contador").textContent = `Mostrando ${parte.length} de ${lista.length}`;
+    $("mas").innerHTML = "";
+
+    if (parte.length === 0) {
+      grid.innerHTML = `<div class="estado">No se encontraron resultados.</div>`;
+      return;
     }
-
-    async function dibujar() {
-      const grid = $("grid");
-      const parte = lista.slice(0, pagina * POR_PAGINA);
-      $("contador").textContent = t("p1Count", { n: parte.length, total: lista.length });
-      $("mas").innerHTML = "";
-
-      if (parte.length === 0) {
-        grid.innerHTML = `<div class="estado">${t("p2NoMatch")}</div>`;
-        return;
+    grid.innerHTML = `<div class="estado">Cargando tarjetas...</div>`;
+    try {
+      const datos = await Promise.all(parte.map((p) => obtenerDetallesCompletos(p, currentController.signal)));
+      grid.innerHTML = datos.filter(Boolean).map(tarjeta).join("");
+      if (parte.length < lista.length) {
+        $("mas").innerHTML = `<button class="accion" id="btnMas">Cargar más resultados</button>`;
+        $("btnMas").addEventListener("click", () => { pagina++; dibujar(); });
       }
-      grid.innerHTML = `<div class="estado">${t("p2LoadingCards")}</div>`;
-      try {
-        const datos = await Promise.all(parte.map((p) => datosDe(p.name)));
-        grid.innerHTML = datos.map(tarjeta).join("");
-        if (parte.length < lista.length) {
-          $("mas").innerHTML = `<button class="accion" id="btnMas">${t("more")}</button>`;
-          $("btnMas").addEventListener("click", () => { pagina++; dibujar(); });
-        }
-      } catch (e) {
-        console.error(e);
-        grid.innerHTML = `<div class="estado error">${t("p2Err")} <br><button class="accion" id="reintentar">${t("retry")}</button></div>`;
-        $("reintentar").addEventListener("click", dibujar);
-      }
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+      grid.innerHTML = `<div class="estado error">Ocurrió un error al cargar los datos.<br><button class="accion" id="reintentar">Reintentar</button></div>`;
+      $("reintentar").addEventListener("click", dibujar);
+    }
+  }
+
+  function normalizarYValidarInput(rawInput) {
+    if (!rawInput) return "";
+    let cleaned = rawInput.trim().toLowerCase().slice(0, 30);
+    cleaned = cleaned.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    cleaned = cleaned.replace(/\s+/g, "-");
+    cleaned = cleaned.replace(/[^a-z0-9-]/g, "");
+    return cleaned;
+  }
+
+  function aplicarFiltro(textoCrudo) {
+    const q = normalizarYValidarInput(textoCrudo);
+    lista = !q ? todos : todos.filter((p) => p.name.includes(q) || p.id.toString() === q);
+    pagina = 1;
+    ocultarSugerencias();
+    dibujar();
+  }
+
+  // Autocompletado INSTANTÁNEO al escribir
+  function mostrarSugerencias(query) {
+    const contenedor = $("sugerencias");
+    const q = normalizarYValidarInput(query);
+    if (!q || q.length < 1) {
+      ocultarSugerencias();
+      return;
     }
 
-    function aplicarFiltro(texto) {
-      const q = texto.trim().toLowerCase();
-      lista = q ? todos.filter((p) => p.name.includes(q)) : todos;
-      pagina = 1;
-      dibujar();
+    const coincidencias = todos.filter(p => p.name.includes(q) || p.id.toString() === q).slice(0, 8);
+    if (coincidencias.length === 0) {
+      ocultarSugerencias();
+      return;
     }
 
-    async function iniciar() {
-      $("grid").innerHTML = `<div class="estado">${t("p2Loading")}</div>`;
-      try {
-        const { results } = await pedir(`${API}/pokemon?limit=${TOTAL}`);
-        todos = results.map(({ name, url }) => ({ name, id: idDe(url) }));
-        aplicarFiltro("");
-      } catch (e) {
-        console.error(e);
-        $("grid").innerHTML = `<div class="estado error">${t("p2Err")} <br><button class="accion" id="reintentar">${t("retry")}</button></div>`;
-        $("reintentar").addEventListener("click", iniciar);
-      }
-    }
+    contenedor.innerHTML = coincidencias.map((p, idx) => {
+      const nombreResaltado = p.name.replace(new RegExp(q, 'gi'), match => `<strong>${match}</strong>`);
+      return `<div class="sugerencia-item" role="option" id="sug-${idx}" data-name="${p.name}">${nombreResaltado} (#${p.id})</div>`;
+    }).join("");
 
-    // Búsqueda con retraso: cada tecla reinicia la espera y la búsqueda
-    // se ejecuta recién 4 segundos después de la última tecla (debounce).
-    let temporizador = null, cuenta = null;
-    $("buscar").addEventListener("input", () => {
-      clearTimeout(temporizador);
-      clearInterval(cuenta);
-      let seg = RETRASO_MS / 1000;
-      $("aviso").textContent = t("p2Wait", { s: seg });
-      cuenta = setInterval(() => { seg--; if (seg > 0) $("aviso").textContent = t("p2Wait", { s: seg }); }, 1000);
-      temporizador = setTimeout(() => {
-        clearInterval(cuenta);
-        $("aviso").textContent = "";
-        aplicarFiltro($("buscar").value);
-      }, RETRASO_MS);
+    contenedor.style.display = "block";
+    $("buscar").setAttribute("aria-expanded", "true");
+    indiceSugerenciaActiva = -1;
+
+    // Al hacer clic en una sugerencia, se inicia la cuenta regresiva de 4 segundos antes de mostrar el resultado
+    contenedor.querySelectorAll('.sugerencia-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const nombreElegido = item.getAttribute('data-name');
+        $("buscar").value = nombreElegido;
+        ocultarSugerencias();
+        iniciarBusquedaConRetraso(nombreElegido);
+      });
     });
+  }
 
-    $("btnMenu").addEventListener("click", () => $("sidebar").classList.toggle("abierto"));
-    document.addEventListener("idiomaCambiado", () => { if (todos.length) dibujar(); else iniciar(); });
-    iniciar();
-  </script>
+  function ocultarSugerencias() {
+    const contenedor = $("sugerencias");
+    contenedor.innerHTML = "";
+    contenedor.style.display = "none";
+    $("buscar").setAttribute("aria-expanded", "false");
+    indiceSugerenciaActiva = -1;
+  }
+
+  async function iniciar() {
+    $("grid").innerHTML = `<div class="estado">Cargando catálogo completo de Pokémon...</div>`;
+    try {
+      const data = await api("https://pokeapi.co/api/v2/pokemon?limit=2000");
+      todos = data.results.map(item => {
+        const segments = item.url.split('/').filter(Boolean);
+        const id = parseInt(segments[segments.length - 1], 10);
+        return { id, name: item.name, url: item.url };
+      }).filter(pokemon => pokemon.id < 10000);
+      aplicarFiltro("");
+    } catch (e) {
+      $("grid").innerHTML = `<div class="estado error">Error al conectar con la API.<br><button class="accion" id="reintentar">Reintentar</button></div>`;
+      $("reintentar").addEventListener("click", iniciar);
+    }
+  }
+
+  // Función centralizada para aplicar los 4 segundos de retraso con cuenta regresiva al lado de la barra
+  function iniciarBusquedaConRetraso(val) {
+    clearTimeout(temporizadorBusqueda);
+    clearInterval(intervaloCuenta);
+
+    let seg = RETRASO_MS / 1000;
+    $("aviso").textContent = `Buscando en ${seg}s...`;
+
+    intervaloCuenta = setInterval(() => {
+      seg--;
+      if (seg > 0) {
+        $("aviso").textContent = `Buscando en ${seg}s...`;
+      } else {
+        clearInterval(intervaloCuenta);
+      }
+    }, 1000);
+
+    temporizadorBusqueda = setTimeout(() => {
+      clearInterval(intervaloCuenta);
+      $("aviso").textContent = "";
+      aplicarFiltro(val);
+    }, RETRASO_MS);
+  }
+
+  // Input: Solo muestra el autocompletado de manera instantánea (sin retraso en la búsqueda al teclear)
+  $("buscar").addEventListener("input", (e) => {
+    const val = e.target.value;
+
+    if (!val.trim()) {
+      ocultarSugerencias();
+      $("aviso").textContent = "";
+      clearTimeout(temporizadorBusqueda);
+      clearInterval(intervaloCuenta);
+      aplicarFiltro("");
+      return;
+    }
+
+    // Autocompletado INSTANTÁNEO
+    mostrarSugerencias(val);
+  });
+
+  $("buscar").addEventListener("keydown", (e) => {
+    const contenedor = $("sugerencias");
+    const items = contenedor.querySelectorAll('.sugerencia-item');
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (items.length > 0) {
+        indiceSugerenciaActiva = (indiceSugerenciaActiva + 1) % items.length;
+        items.forEach((it, idx) => it.classList.toggle('activo', idx === indiceSugerenciaActiva));
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (items.length > 0) {
+        indiceSugerenciaActiva = (indiceSugerenciaActiva - 1 + items.length) % items.length;
+        items.forEach((it, idx) => it.classList.toggle('activo', idx === indiceSugerenciaActiva));
+      }
+    } else if (e.key === "Enter") {
+      if (contenedor.style.display === "block" && indiceSugerenciaActiva >= 0 && items[indiceSugerenciaActiva]) {
+        e.preventDefault();
+        const nombreElegido = items[indiceSugerenciaActiva].getAttribute('data-name');
+        $("buscar").value = nombreElegido;
+        ocultarSugerencias();
+        iniciarBusquedaConRetraso(nombreElegido);
+      } else if (items.length > 0 && contenedor.style.display === "block") {
+        e.preventDefault();
+        const nombreElegido = items[0].getAttribute('data-name');
+        $("buscar").value = nombreElegido;
+        ocultarSugerencias();
+        iniciarBusquedaConRetraso(nombreElegido);
+      } else {
+        // Si presiona Enter sin usar sugerencias, lanza la búsqueda general con los 4s
+        e.preventDefault();
+        ocultarSugerencias();
+        iniciarBusquedaConRetraso($("buscar").value);
+      }
+    } else if (e.key === "Escape") {
+      ocultarSugerencias();
+    }
+  });
+
+  // Clic en la lupa o envío del formulario: Activa los 4 segundos de espera con cuenta regresiva
+  $("formBuscador").addEventListener("submit", (e) => {
+    e.preventDefault();
+    ocultarSugerencias();
+    iniciarBusquedaConRetraso($("buscar").value);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!$("formBuscador").contains(e.target)) {
+      ocultarSugerencias();
+    }
+  });
+
+  $("btnMenu").addEventListener("click", () => $("sidebar").classList.toggle("abierto"));
+  iniciar();
+</script>
 </body>
 </html>
