@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reporte de Estudiantes · Academico</title>
+  <link rel="stylesheet" href="../static/styles.css" th:href="@{/styles.css}">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <h1>Academico</h1>
+      <p>Gestión académica</p>
+      <nav aria-label="Menú principal">
+        <a th:href="@{/students.html}">Estudiantes (Tarjetas)</a>
+        <a th:href="@{/pokemon.html}">Pokédex (API)</a>
+        <a th:href="@{/listStudents}" aria-current="page">Reporte Estudiantes</a>
+        <a th:href="@{/showNewStudentForm}">Nuevo Estudiante</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <button class="menu-button" id="menuButton" aria-label="Abrir menú">☰</button>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="tableSearch" type="search" placeholder="Filtrar por nombre, cédula o email…" aria-label="Filtrar estudiantes" autocomplete="off">
+        </div>
+        <a th:href="@{/showNewStudentForm}" class="new-button">+ Nuevo estudiante</a>
+      </div>
+
+      <div class="page-title">
+        <h2>Reporte General de Estudiantes</h2>
+        <span class="muted" id="recordCount" th:text="'Total: ' + ${#lists.size(studentList)} + ' estudiantes'">Total: 0 estudiantes</span>
+      </div>
+
+      <div class="table-container">
+        <table class="styled-table" id="studentsTable">
+          <thead>
+            <tr>
+              <th>Matrícula</th>
+              <th>Cédula</th>
+              <th>Nombre del Estudiante</th>
+              <th>E-mail</th>
+              <th>Teléfono</th>
+              <th>Dirección</th>
+              <th>Fec. Nacimiento</th>
+              <th style="text-align: center;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="student : ${studentList}">
+              <td style="font-weight: 600; color: var(--accent);" th:text="${student.enrollmentNumber}"></td>
+              <td th:text="${student.idNumber}"></td>
+              <td style="font-weight: 600;" th:text="${student.name}"></td>
+              <td th:text="${student.email}"></td>
+              <td th:text="${student.phone}"></td>
+              <td th:text="${student.address}"></td>
+              <td th:text="${student.birthDate}"></td>
+              <td style="white-space: nowrap; text-align: center;">
+                <a th:href="@{/showUpdateStudentForm/{enrollmentNumber}(enrollmentNumber=${student.enrollmentNumber})}" class="table-button edit">Actualizar</a>
+                <button type="button" class="table-button delete" 
+                        th:attr="data-id=${student.enrollmentNumber}, data-name=${student.name}"
+                        onclick="confirmDeleteRow(this)">Eliminar</button>
+              </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(studentList)}">
+              <td colspan="8" style="text-align:center; padding: 2.5rem 1rem; color: var(--muted);">
+                No hay estudiantes registrados actualmente. Use el botón <strong>+ Nuevo estudiante</strong> para registrar uno.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Warm popup modal to confirm deletion -->
+  <div class="modal-backdrop" id="deleteModal">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="deleteModalTitle" style="color:var(--error);">Confirmar eliminación</h3>
+      <p id="deleteModalText" style="color:var(--muted); margin: 1rem 0 1.5rem; font-size: .95rem;">¿Está seguro de que desea eliminar este estudiante?</p>
+      <div class="actions">
+        <a id="confirmDeleteButton" href="#" class="action-button danger">Eliminar</a>
+        <button type="button" class="close" onclick="closeDeleteModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const menuButton = document.getElementById("menuButton");
+    if (menuButton) menuButton.addEventListener("click", () => document.getElementById("sidebar").classList.toggle("open"));
+
+    function confirmDeleteRow(button) {
+      const id = button.getAttribute("data-id");
+      const name = button.getAttribute("data-name");
+      document.getElementById("deleteModalTitle").textContent = "¿Eliminar a " + name + "?";
+      document.getElementById("deleteModalText").textContent = "Esta acción eliminará permanentemente la matrícula #" + id + " de la base de datos.";
+      document.getElementById("confirmDeleteButton").setAttribute("href", "/deleteStudent/" + id);
+      document.getElementById("deleteModal").classList.add("open");
+    }
+
+    function closeDeleteModal() {
+      document.getElementById("deleteModal").classList.remove("open");
+    }
+
+    document.getElementById("deleteModal").addEventListener("click", (e) => {
+      if (e.target === document.getElementById("deleteModal")) closeDeleteModal();
+    });
+
+    // Real-time filter for the table
+    const searchInput = document.getElementById("tableSearch");
+    if (searchInput) {
+      searchInput.addEventListener("input", function() {
+        const query = this.value.toLowerCase().trim();
+        const rows = document.querySelectorAll("#studentsTable tbody tr");
+        let visibleCount = 0;
+        rows.forEach(row => {
+          if (row.children.length < 8) return;
+          const text = row.textContent.toLowerCase();
+          const matches = text.includes(query);
+          row.style.display = matches ? "" : "none";
+          if (matches) visibleCount++;
+        });
+        document.getElementById("recordCount").textContent = "Mostrando: " + visibleCount + " registros";
+      });
+    }
+  </script>
+</body>
+</html>

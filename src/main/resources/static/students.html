@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Students · Academico</title>
+  <link rel="stylesheet" href="styles.css?v=3">
+  <style>
+    :root {
+      --ink: #241c18;
+      --ink-soft: #3a2e28;
+      --background: #f9f6f0;
+      --card: #ffffff;
+      --accent: #c05621;
+      --accent-bg: #faebe0;
+      --text: #28211c;
+      --muted: #74655a;
+      --border: #e7dfd5;
+      --error: #b82e24;
+      /* Grid columns: 3 by default, 2 on small screens, 4 on large ones */
+      --columns: 3;
+    }
+    @media (max-width: 768px)  { :root { --columns: 2; } }
+    @media (min-width: 1280px) { :root { --columns: 4; } }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+    /* Layout: sidebar + content */
+    .app { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 100vh; }
+
+    .sidebar {
+      background: var(--ink);
+      color: #fff;
+      padding: 1.25rem 1rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .sidebar h1 { font-size: 1.25rem; margin: 0 0 .15rem; }
+    .sidebar p  { margin: 0 0 1.5rem; font-size: .85rem; color: #cebfb3; }
+    .sidebar nav { display: flex; flex-direction: column; gap: .25rem; }
+    .sidebar a {
+      color: #ece3dc;
+      text-decoration: none;
+      padding: .6rem .75rem;
+      border-radius: 8px;
+      transition: background-color .15s ease, color .15s ease;
+    }
+    .sidebar a:hover { background: var(--ink-soft); color: #fff; }
+    .sidebar a[aria-current="page"] { background: var(--accent); color: #fff; font-weight: 600; }
+
+    .content { padding: 0 1.5rem 2rem; min-width: 0; }
+
+    /* Top bar with search box */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: 1rem 0;
+      background: var(--background);
+    }
+    .menu-button {
+      display: none;
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 8px;
+      padding: .55rem .7rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .search-box { position: relative; flex: 1; max-width: 520px; }
+    .search-box svg {
+      position: absolute; left: .8rem; top: 50%;
+      transform: translateY(-50%);
+      width: 18px; height: 18px; color: var(--muted);
+    }
+    .search-box input {
+      width: 100%;
+      padding: .7rem .9rem .7rem 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 1rem;
+      background: var(--card);
+      color: var(--text);
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(192, 86, 33, 0.15);
+    }
+    .live-hint { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+
+    .page-title { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: .25rem 0 1rem; }
+    .page-title h2 { margin: 0; font-size: 1.5rem; }
+    #counter { color: var(--muted); font-size: .95rem; }
+
+    /* Card grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      cursor: pointer;
+      min-width: 0;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 14px rgba(36, 28, 24, 0.08);
+      transform: translateY(-2px);
+    }
+    .card-header { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; min-width: 0; }
+    .initial {
+      flex: none;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--accent-bg);
+      color: var(--accent);
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 1.1rem;
+    }
+    .card h3 { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+    .enrollment { font-size: .8rem; color: var(--muted); }
+
+    .info-row { display: flex; flex-direction: column; margin-top: .45rem; min-width: 0; }
+    .label { font-size: .78rem; color: var(--muted); }
+    .value { font-size: .92rem; overflow-wrap: anywhere; }
+
+    /* States: loading, empty, error */
+    .state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 2.5rem 1rem;
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+    }
+    .state.error { color: var(--error); border-color: var(--error); }
+    .state button {
+      margin-top: .75rem;
+      padding: .55rem 1rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color .15s ease;
+    }
+    .state button:hover { background: #ab4b1c; }
+
+    /* Detail window */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(36, 28, 24, .6);
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 1rem;
+      z-index: 20;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--card);
+      border-radius: 14px;
+      width: 100%; max-width: 460px;
+      max-height: 90vh; overflow: auto;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(36, 28, 24, 0.2);
+      animation: appear .18s ease-out;
+    }
+    @keyframes appear { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .modal .card-header h3 { font-size: 1.25rem; }
+    .modal .info-row { padding: .5rem 0; border-bottom: 1px solid var(--border); margin: 0; }
+    .modal .value { font-size: 1rem; }
+    .language-button {
+      margin-left: auto; border: 1px solid var(--border); background: var(--card); color: var(--text);
+      border-radius: 999px; padding: .5rem .9rem; font-size: .9rem; font-weight: 600; cursor: pointer;
+      transition: border-color .15s ease, color .15s ease;
+    }
+    .language-button:hover { border-color: var(--accent); color: var(--accent); }
+    .new-button {
+      padding: .6rem 1.1rem; border: none; border-radius: 999px;
+      background: var(--accent); color: #fff; font-size: .95rem; font-weight: 600; cursor: pointer;
+      transition: background-color .15s ease;
+    }
+    .new-button:hover { background: #ab4b1c; }
+    .title-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .modal h3#modalName { margin: 0; }
+    .form-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-top: 1rem; }
+    .form-field { display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; color: var(--muted); }
+    .form-field input {
+      padding: .6rem .7rem; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 1rem; color: var(--text); background: #fff; width: 100%;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .form-field input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(192, 86, 33, 0.15);
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.25rem; }
+    .actions button {
+      flex: 1; padding: .7rem; border-radius: 8px; border: 1px solid transparent;
+      font-size: 1rem; cursor: pointer;
+      transition: background-color .15s ease, opacity .15s ease;
+    }
+    .actions button:disabled { opacity: .6; cursor: wait; }
+    .primary { background: var(--accent); color: #fff; font-weight: 600; }
+    .primary:hover { background: #ab4b1c; }
+    .secondary { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+    .danger { background: #fff; color: var(--error); border-color: var(--error) !important; font-weight: 600; }
+    .close { background: var(--ink); color: #fff; }
+    .close:hover { background: var(--ink-soft); }
+    .toast {
+      position: fixed; left: 50%; bottom: 1.25rem; transform: translateX(-50%);
+      background: var(--ink); color: #fff; padding: .7rem 1.1rem; border-radius: 10px;
+      max-width: 90vw; z-index: 40; display: none;
+    }
+    .toast.visible { display: block; }
+    .toast.error { background: var(--error); }
+    @media (max-width: 480px) { .form-fields { grid-template-columns: minmax(0, 1fr); } }
+
+    /* Small screens: the sidebar is hidden and opens with the menu button */
+    @media (max-width: 768px) {
+      .app { grid-template-columns: minmax(0, 1fr); }
+      .sidebar {
+        position: fixed; z-index: 30;
+        left: 0; top: 0; width: 240px;
+        transform: translateX(-100%);
+        transition: transform .2s;
+      }
+      .sidebar.open { transform: none; }
+      .menu-button { display: block; }
+      .content { padding: 0 .85rem 1.5rem; }
+      .live-hint { display: none; }
+      .card { padding: .75rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .modal { animation: none; }
+      .sidebar { transition: none; }
+    }
+  </style>
+</head>
+<body data-title-key="p1Title">
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <h1>Academico</h1>
+      <p data-i18n="appSub">Student management</p>
+      <nav aria-label="Main menu" data-i18n-aria="navAria">
+        <a href="students.html" aria-current="page" data-i18n="navStudents">Students</a>
+        <a href="pokemon.html" data-i18n="navApi">Page 2 (public API)</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <button class="menu-button" id="menuButton" aria-label="Open menu" data-i18n-aria="menu">☰</button>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="search" type="search" placeholder="Search by name, ID number or email" aria-label="Search students" data-i18n-placeholder="p1Search" data-i18n-aria="p1SearchAria" autocomplete="off">
+        </div>
+        <span class="live-hint" data-i18n="p1Live">Searches as you type</span>
+        <button type="button" class="language-button" id="languageButton" data-i18n-aria="switchLanguage" aria-label="Switch language">Español</button>
+      </div>
+
+      <div class="page-title">
+        <h2 data-i18n="navStudents">Students</h2>
+        <div class="title-actions">
+          <span id="counter" aria-live="polite"></span>
+          <button type="button" class="new-button" id="newButton" data-i18n="p1New">+ New student</button>
+        </div>
+      </div>
+
+      <section class="grid" id="grid" aria-label="Student list" data-i18n-aria="p1ListAria"></section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalName" id="modal"></div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="i18n.js"></script>
+  <script>
+    // Backend address. If you open this page from another port, use the full address:
+    // const API = "http://localhost:8080/api/students";
+    const API = "/api/students";
+
+    const $ = (id) => document.getElementById(id);
+    let students = [];
+    let loaded = false;
+
+    // Prevents a value with strange symbols from breaking the HTML
+    const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    // To search regardless of upper/lower case and accents
+    const normalize = (t) =>
+      String(t ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    // "2000-01-31" -> "January 31, 2000" (the parts are split manually to avoid time zone errors)
+    const formatDate = (value) => {
+      if (!value) return "—";
+      const [year, month, day] = String(value).split("-");
+      const date = new Date(year, month - 1, day);
+      if (isNaN(date)) return value;
+      return date.toLocaleDateString(currentLanguage === "es" ? "es-EC" : "en-US", { year: "numeric", month: "long", day: "numeric" });
+    };
+
+    const orDash = (v) => (v === null || v === undefined || v === "" ? "—" : v);
+
+    function fieldsOf(student) {
+      const { idNumber, email, phone, address, birthDate } = student;
+      return [
+        [t("fIdNumber"), orDash(idNumber)],
+        [t("fEmail"), orDash(email)],
+        [t("fPhone"), orDash(phone)],
+        [t("fAddress"), orDash(address)],
+        [t("fBirth"), formatDate(birthDate)]
+      ];
+    }
+
+    const fieldRows = (student) =>
+      fieldsOf(student).map(([label, value]) =>
+        `<div class="info-row"><span class="label">${label}</span><span class="value">${esc(value)}</span></div>`
+      ).join("");
+
+    function render(list) {
+      const grid = $("grid");
+
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="state">${
+          students.length === 0
+            ? t("noneYet")
+            : t("noMatch")
+        }</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map((student) => {
+        const initial = esc((student.name || "?").trim().charAt(0).toUpperCase());
+        return `
+          <article class="card" tabindex="0" role="button" data-id="${esc(student.enrollmentNumber)}"
+                   aria-label="${esc(t("viewAria", { name: student.name }))}">
+            <div class="card-header">
+              <div class="initial" aria-hidden="true">${initial}</div>
+              <div>
+                <h3>${esc(student.name)}</h3>
+                <span class="enrollment">${esc(t("idLabel", { id: student.enrollmentNumber }))}</span>
+              </div>
+            </div>
+            ${fieldRows(student)}
+          </article>`;
+      }).join("");
+    }
+
+    function updateCounter(shown) {
+      $("counter").textContent = t("p1Count", { n: shown, total: students.length });
+    }
+
+    // Real-time search: runs with every letter you type
+    function filterStudents() {
+      const q = normalize($("search").value.trim());
+      const result = q === ""
+        ? students
+        : students.filter((s) =>
+            [s.name, s.idNumber, s.email].some((field) => normalize(field).includes(q)));
+      render(result);
+      updateCounter(result.length);
+    }
+
+    async function loadStudents() {
+      $("grid").innerHTML = `<div class="state">${t("loading")}</div>`;
+      try {
+        const response = await fetch(API);
+        if (!response.ok) throw new Error(`Error ${response.status}`);
+        students = await response.json();
+        loaded = true;
+        filterStudents();
+      } catch (error) {
+        console.error("Could not load the students:", error);
+        $("counter").textContent = "";
+        $("grid").innerHTML = `<div class="state error">
+          ${t("connErr")}
+          <br><button type="button" id="retryButton">${t("retry")}</button></div>`;
+        $("retryButton").addEventListener("click", loadStudents);
+      }
+    }
+
+    // Detail window
+    function openDetail(id) {
+      const student = students.find((s) => String(s.enrollmentNumber) === String(id));
+      if (!student) return;
+      $("modal").innerHTML = `
+        <div class="card-header">
+          <div class="initial" aria-hidden="true">${esc((student.name || "?").trim().charAt(0).toUpperCase())}</div>
+          <div>
+            <h3 id="modalName">${esc(student.name)}</h3>
+            <span class="enrollment">${esc(t("idLabel", { id: student.enrollmentNumber }))}</span>
+          </div>
+        </div>
+        ${fieldRows(student)}
+        <div class="actions">
+          <button type="button" class="secondary" id="editButton">${t("edit")}</button>
+          <button type="button" class="danger" id="deleteButton">${t("del")}</button>
+          <button type="button" class="close" id="closeButton">${t("close")}</button>
+        </div>`;
+      $("modalBackdrop").classList.add("open");
+      $("closeButton").focus();
+      $("closeButton").addEventListener("click", closeModal);
+      $("editButton").addEventListener("click", () => openForm(student));
+      $("deleteButton").addEventListener("click", () => confirmDelete(student));
+    }
+    const closeModal = () => $("modalBackdrop").classList.remove("open");
+
+    // ---- Add, edit and delete ----
+    function showToast(text, isError = false) {
+      const toastEl = $("toast");
+      toastEl.textContent = text;
+      toastEl.className = "toast visible" + (isError ? " error" : "");
+      clearTimeout(showToast.id);
+      showToast.id = setTimeout(() => { toastEl.className = "toast"; }, 3500);
+    }
+
+    // [field, label key, input type, required]; the required ones are marked with *
+    const FIELDS = [
+      ["idNumber", "fIdNumber", "text", true],
+      ["name", "fName", "text", true],
+      ["email", "fEmail", "email", false],
+      ["phone", "fPhone", "tel", false],
+      ["address", "fAddress", "text", false],
+      ["birthDate", "fBirth", "date", false]
+    ];
+
+    // No argument: form to add a student. With a student: form to edit it.
+    function openForm(student = null) {
+      const editing = student !== null;
+      const fields = FIELDS.map(([field, key, type, required]) => `
+        <label class="form-field">${t(key)}${required ? " *" : ""}
+          <input id="f_${field}" type="${type}" value="${esc(student?.[field] ?? "")}" ${required ? "required" : ""}>
+        </label>`).join("");
+      $("modal").innerHTML = `
+        <h3 id="modalName">${editing ? t("editTitle") : t("newTitle")}</h3>
+        <form id="studentForm">
+          <div class="form-fields">${fields}</div>
+          <div class="actions">
+            <button type="submit" class="primary" id="saveButton">${editing ? t("saveChanges") : t("save")}</button>
+            <button type="button" class="close" id="cancelButton">${t("cancel")}</button>
+          </div>
+        </form>`;
+      $("modalBackdrop").classList.add("open");
+      $("f_idNumber").focus();
+      $("cancelButton").addEventListener("click", closeModal);
+      $("studentForm").addEventListener("submit", (e) => { e.preventDefault(); save(student); });
+    }
+
+    async function save(student) {
+      const data = {};
+      FIELDS.forEach(([field]) => {
+        const value = $("f_" + field).value.trim();
+        data[field] = value === "" ? null : value;
+      });
+      const editing = student !== null;
+      const button = $("saveButton");
+      button.disabled = true;
+      try {
+        const response = await fetch(editing ? `${API}/${student.enrollmentNumber}` : API, {
+          method: editing ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+          throw new Error(response.status === 400
+            ? t("badData")
+            : `Error ${response.status}`);
+        }
+        closeModal();
+        showToast(editing ? t("updated") : t("saved"));
+        await loadStudents();
+      } catch (error) {
+        console.error("Could not save:", error);
+        showToast(t("saveFail", { msg: error.message }), true);
+        button.disabled = false;
+      }
+    }
+
+    // ---- Delete confirmation in a warm popup ----
+    function confirmDelete(student) {
+      $("modal").innerHTML = `
+        <h3 id="modalName" style="color:var(--error);">${esc(t("confirmDel", { name: student.name }))}</h3>
+        <p style="color:var(--muted);margin:1rem 0 1.5rem;font-size:.95rem;">${esc(t("idLabel", { id: student.enrollmentNumber }))} · ${esc(t("fIdNumber"))}: ${esc(student.idNumber || "—")}</p>
+        <div class="actions">
+          <button type="button" class="danger" id="confirmDeleteButton">${t("del")}</button>
+          <button type="button" class="close" id="cancelDeleteButton">${t("cancel")}</button>
+        </div>`;
+      $("modalBackdrop").classList.add("open");
+      $("cancelDeleteButton").focus();
+      $("cancelDeleteButton").addEventListener("click", () => openDetail(student.enrollmentNumber));
+      $("confirmDeleteButton").addEventListener("click", async () => {
+        try {
+          const response = await fetch(`${API}/${student.enrollmentNumber}`, { method: "DELETE" });
+          if (!response.ok) throw new Error(`Error ${response.status}`);
+          closeModal();
+          showToast(t("deleted"));
+          await loadStudents();
+        } catch (error) {
+          console.error("Could not delete:", error);
+          showToast(t("delFail", { msg: error.message }), true);
+        }
+      });
+    }
+
+    // Events
+    $("search").addEventListener("input", filterStudents);
+
+    $("grid").addEventListener("click", (e) => {
+      const card = e.target.closest(".card");
+      if (card) openDetail(card.dataset.id);
+    });
+    $("grid").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const card = e.target.closest(".card");
+      if (card) { e.preventDefault(); openDetail(card.dataset.id); }
+    });
+
+    $("modalBackdrop").addEventListener("click", (e) => { if (e.target === $("modalBackdrop")) closeModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+    $("newButton").addEventListener("click", () => openForm());
+    document.addEventListener("languageChanged", () => {
+      closeModal();
+      if (loaded) filterStudents(); else loadStudents();
+    });
+    $("menuButton").addEventListener("click", () => $("sidebar").classList.toggle("open"));
+    $("sidebar").addEventListener("click", (e) => { if (e.target.tagName === "A") $("sidebar").classList.remove("open"); });
+
+    loadStudents();
+</script>
+</body>
+</html>

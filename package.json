@@ -1,7 +1,7 @@
 {
   "name": "academico",
   "version": "1.0.0",
-  "description": "Aplicación web desarrollada con Java y Spring Boot, conectada a una base de datos PostgreSQL. El proyecto permite consultar estudiantes mediante tarjetas y explorar información de Pokémon utilizando la PokéAPI.",
+  "description": "Web application developed with Java and Spring Boot, connected to a PostgreSQL database. The project lets users view students through cards and explore Pokémon information using the PokéAPI.",
   "main": "index.js",
   "scripts": {},
   "repository": {

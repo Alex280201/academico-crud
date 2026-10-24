@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Actualizar Estudiante · Academico</title>
+  <link rel="stylesheet" href="../static/styles.css" th:href="@{/styles.css}">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <h1>Academico</h1>
+      <p>Gestión académica</p>
+      <nav aria-label="Menú principal">
+        <a th:href="@{/students.html}">Estudiantes (Tarjetas)</a>
+        <a th:href="@{/pokemon.html}">Pokédex (API)</a>
+        <a th:href="@{/listStudents}">Reporte Estudiantes</a>
+        <a th:href="@{/showNewStudentForm}">Nuevo Estudiante</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <button class="menu-button" id="menuButton" aria-label="Abrir menú">☰</button>
+        <div class="page-title" style="margin:0;">
+          <h2>Gestión de Estudiantes</h2>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="page-title" style="margin-bottom: .75rem;">
+          <h2 style="font-size: 1.3rem;">Actualizar Datos del Estudiante</h2>
+          <span class="muted" th:text="'Matrícula #' + ${student.enrollmentNumber}">Matrícula #0</span>
+        </div>
+
+        <form action="#" th:action="@{/saveStudent}" th:object="${student}" method="POST">
+          <input type="hidden" th:field="*{enrollmentNumber}">
+
+          <div class="form-fields">
+            <label class="form-field">
+              Número de Cédula *
+              <input type="text" th:field="*{idNumber}" placeholder="Número de Cédula" required autocomplete="off">
+            </label>
+
+            <label class="form-field">
+              Nombre Completo *
+              <input type="text" th:field="*{name}" placeholder="Nombre del Estudiante" required autocomplete="off">
+            </label>
+
+            <label class="form-field">
+              Correo Electrónico
+              <input type="email" th:field="*{email}" placeholder="Correo electrónico" autocomplete="off">
+            </label>
+
+            <label class="form-field">
+              Teléfono de Contacto
+              <input type="tel" th:field="*{phone}" placeholder="Número de Teléfono" autocomplete="off">
+            </label>
+
+            <label class="form-field form-field-full">
+              Dirección Domiciliaria
+              <input type="text" th:field="*{address}" placeholder="Dirección" autocomplete="off">
+            </label>
+
+            <label class="form-field form-field-full">
+              Fecha de Nacimiento
+              <input type="date" th:field="*{birthDate}">
+            </label>
+          </div>
+
+          <div class="actions" style="margin-top: 1.5rem;">
+            <button type="submit" class="primary">Guardar Cambios</button>
+            <a th:href="@{/listStudents}" class="action-button close">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const menuButton = document.getElementById("menuButton");
+    if (menuButton) menuButton.addEventListener("click", () => document.getElementById("sidebar").classList.toggle("open"));
+  </script>
+</body>
+</html>

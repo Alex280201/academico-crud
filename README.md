@@ -13,7 +13,7 @@ A web application developed using Java and Spring Boot, connected to a PostgreSQ
 - HTML, CSS, and JavaScript
 - IntelliJ IDEA
 - Postman for testing API endpoints
-- Playwright for automated UI testing, if the `pruebas/` folder is included
+- Playwright for automated UI testing, if the `tests/` folder is included
 
 ## Features
 
@@ -48,10 +48,10 @@ With the application running on port 8080:
 
 | Resource | URL |
 |---|---|
-| Student Page | `http://localhost:8080/pagina1.html` |
-| Pokémon Page | `http://localhost:8080/pagina2.html` |
-| Pikachu Details | `http://localhost:8080/detalle.html?id=25` |
-| Student API | `http://localhost:8080/api/estudiantes` |
+| Student Page | `http://localhost:8080/students.html` |
+| Pokémon Page | `http://localhost:8080/pokemon.html` |
+| Pikachu Details | `http://localhost:8080/detail.html?id=25` |
+| Student API | `http://localhost:8080/api/students` |
 
 These URLs work locally on the computer where the application is running. They are not public links.
 
@@ -59,7 +59,7 @@ These URLs work locally on the computer where the application is running. They a
 
 The API can be tested using Postman and the endpoints defined in the project.
 
-If Playwright tests are included, refer to the instructions in the `pruebas/` folder to install the dependencies and run the automated tests.
+If Playwright tests are included, refer to the instructions in the `tests/` folder to install the dependencies and run the automated tests.
 
 ## Author
 

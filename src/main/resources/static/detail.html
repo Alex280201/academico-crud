@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Detalle · Pokédex</title>
+  <link rel="stylesheet" href="styles.css?v=3">
+
+  <style>
+    :root {
+      --ink: #241c18;
+      --ink-soft: #3a2e28;
+      --background: #f9f6f0;
+      --card: #ffffff;
+      --accent: #c05621;
+      --accent-bg: #faebe0;
+      --text: #28211c;
+      --muted: #74655a;
+      --border: #e7dfd5;
+      --error: #b82e24;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .detail {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+      gap: 1.5rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      box-shadow: 0 4px 18px rgba(36, 28, 24, 0.05);
+    }
+
+    .detail h1 {
+      margin: 0;
+      text-transform: capitalize;
+      font-size: 1.8rem;
+    }
+
+    .detail h2 {
+      font-size: 1.05rem;
+      margin: 1.25rem 0 .5rem;
+    }
+
+    .detail .photo {
+      border-radius: 12px;
+      background: var(--accent-bg);
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .detail .photo img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .35rem;
+      margin: .5rem 0;
+    }
+
+    .chip {
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-size: .8rem;
+      font-weight: 600;
+      padding: .15rem .6rem;
+      border-radius: 999px;
+    }
+
+    .number {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .facts {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .5rem;
+      margin-top: .75rem;
+    }
+
+    .info-row {
+      background: var(--background);
+      border-radius: 8px;
+      padding: .5rem .65rem;
+    }
+
+    .info-row span {
+      display: block;
+      font-size: .78rem;
+      color: var(--muted);
+    }
+
+    .stat-bar {
+      display: grid;
+      grid-template-columns: 110px 1fr 40px;
+      align-items: center;
+      gap: .5rem;
+      font-size: .9rem;
+      margin: .3rem 0;
+    }
+
+    .track {
+      background: var(--border);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+    }
+
+    .track i {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .evolutions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+    }
+
+    .evo {
+      width: 110px;
+      text-align: center;
+      text-decoration: none;
+      color: inherit;
+      font-size: .85rem;
+      text-transform: capitalize;
+    }
+
+    .evo img {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      background: var(--accent-bg);
+      border-radius: 10px;
+      transition: transform .15s ease;
+    }
+
+    .evo:hover img {
+      transform: scale(1.05);
+    }
+
+    .evo.current img {
+      outline: 3px solid var(--accent);
+    }
+
+    .evo .evo-types {
+      display: block;
+      margin-top: .2rem;
+      color: var(--muted);
+      font-size: .75rem;
+    }
+
+    .footer-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1rem;
+    }
+
+    .footer-actions button {
+      margin: 0;
+    }
+
+    button.action {
+      margin-top: .75rem;
+      padding: .6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color .15s ease;
+    }
+
+    button.action:hover {
+      background: #ab4b1c;
+    }
+
+    .state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+    }
+
+    .state.error {
+      color: var(--error);
+      border-color: var(--error);
+    }
+
+    .language-button {
+      margin-left: auto;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 999px;
+      padding: .5rem .9rem;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color .15s ease, color .15s ease;
+    }
+
+    .language-button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .language-bar {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    @media (max-width: 768px) {
+      .detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .stat-bar {
+        grid-template-columns: 90px 1fr 35px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<header class="language-bar">
+  <button
+          type="button"
+          class="language-button"
+          id="languageButton"
+          data-i18n-aria="switchLanguage"
+          aria-label="Switch language">
+    Español
+  </button>
+</header>
+
+<main class="detail" id="detail" aria-live="polite">
+  <div class="state" data-i18n="dLoading">Loading details…</div>
+</main>
+
+<script src="i18n.js"></script>
+
+<script>
+  const API = "https://pokeapi.co/api/v2";
+
+  const $ = (id) => document.getElementById(id);
+
+  const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
+
+  const idFromUrl = (url) => Number(url.split("/").filter(Boolean).pop());
+
+  async function fetchJson(url) {
+    const r = await fetch(url);
+
+    if (!r.ok) {
+      throw new Error(`Error ${r.status}`);
+    }
+
+    return r.json();
+  }
+
+  // Converts the nested evolution chain into a flat list.
+  function flatten(node, list = []) {
+    list.push({
+      name: node.species.name,
+      id: idFromUrl(node.species.url)
+    });
+
+    node.evolves_to.forEach((next) => flatten(next, list));
+
+    return list;
+  }
+
+  function goBack() {
+    if (
+            document.referrer.includes("pokemon.html") &&
+            history.length > 1
+    ) {
+      history.back();
+    } else {
+      location.href = "pokemon.html";
+    }
+  }
+
+  async function loadDetails() {
+    const id = Number(new URLSearchParams(location.search).get("id"));
+
+    if (!Number.isInteger(id) || id < 1) {
+      $("detail").innerHTML = `
+                <div class="state error">
+                    ${t("dNoId")}
+                    <br>
+                    <button class="action" onclick="goBack()">
+                        ${t("back")}
+                    </button>
+                </div>
+            `;
+      return;
+    }
+
+    try {
+      // Endpoint 1: get the Pokémon data.
+      const d = await fetchJson(`${API}/pokemon/${id}`);
+
+      // Endpoint 2: get the species using the Pokémon's URL.
+      const species = await fetchJson(d.species.url);
+
+      // Endpoint 3: get the chain using the species' URL.
+      const chain = await fetchJson(species.evolution_chain.url);
+
+      // Flatten the evolution chain.
+      const evolutions = flatten(chain.chain);
+
+      // Get the real data of each Pokémon in the evolution.
+      const evolutionData = await Promise.all(
+              evolutions.map((e) => fetchJson(`${API}/pokemon/${e.name}`))
+      );
+
+      const entry =
+              species.flavor_text_entries.find(
+                      (e) => e.language.name === currentLanguage
+              ) ||
+              species.flavor_text_entries.find(
+                      (e) => e.language.name === "en"
+              );
+
+      const text = entry
+              ? entry.flavor_text.replace(/[\n\f]/g, " ")
+              : t("noDesc");
+
+      const genus = species.genera.find(
+              (g) => g.language.name === currentLanguage
+      );
+
+      const img =
+              d.sprites.other["official-artwork"].front_default ||
+              d.sprites.front_default;
+
+      document.title = `${d.name} · Pokédex`;
+
+      const chips = d.types
+              .map(
+                      (tp) =>
+                              `<span class="chip">${esc(typeName(tp.type.name))}</span>`
+              )
+              .join("");
+
+      const abilities = d.abilities
+              .map((a) => esc(a.ability.name))
+              .join(", ");
+
+      const stats = d.stats
+              .map(
+                      ({ base_stat, stat }) => `
+                        <div class="stat-bar">
+                            <span>${esc(statName(stat.name))}</span>
+                            <div class="track">
+                                <i style="width:${Math.min(
+                              100,
+                              (base_stat / 255) * 100
+                      )}%"></i>
+                            </div>
+                            <b>${base_stat}</b>
+                        </div>
+                    `
+              )
+              .join("");
+
+      // Build the cards with official images and real types.
+      const evolutionCards = evolutions
+              .map((e, i) => {
+                const evolutionPokemon = evolutionData[i];
+
+                const image =
+                        evolutionPokemon.sprites.other["official-artwork"]
+                                .front_default ||
+                        evolutionPokemon.sprites.front_default ||
+                        "";
+
+                const types = evolutionPokemon.types
+                        .map((tp) => typeName(tp.type.name))
+                        .join(", ");
+
+                return `
+                        <a
+                            class="evo ${e.id === id ? "current" : ""}"
+                            href="detail.html?id=${e.id}"
+                            aria-label="${esc(e.name)}">
+
+                            <img
+                                src="${esc(image)}"
+                                alt="${esc(e.name)}"
+                                loading="lazy">
+
+                            <span>${esc(e.name)}</span>
+
+                            <span class="evo-types">
+                                ${esc(types)}
+                            </span>
+                        </a>
+                    `;
+              })
+              .join("");
+
+      $("detail").innerHTML = `
+                <div class="detail-grid">
+                    <div class="photo">
+                        <img src="${esc(img)}" alt="${esc(d.name)}">
+                    </div>
+
+                    <div>
+                        <span class="number">
+                            ${esc(t("no", {
+        n: String(d.id).padStart(3, "0")
+      }))}
+                            ${genus ? " · " + esc(genus.genus) : ""}
+                        </span>
+
+                        <h1>${esc(d.name)}</h1>
+
+                        <div class="chips">${chips}</div>
+
+                        <p>${esc(text)}</p>
+
+                        <div class="facts">
+                            <div class="info-row">
+                                <span>${t("height")}</span>
+                                ${(d.height / 10).toFixed(1)} m
+                            </div>
+
+                            <div class="info-row">
+                                <span>${t("weight")}</span>
+                                ${(d.weight / 10).toFixed(1)} kg
+                            </div>
+
+                            <div class="info-row">
+                                <span>${t("baseExp")}</span>
+                                ${d.base_experience ?? "—"}
+                            </div>
+                        </div>
+
+                        <h2>${t("abilities")}</h2>
+                        <p style="margin:0;text-transform:capitalize">
+                            ${abilities}
+                        </p>
+
+                        <h2>${t("stats")}</h2>
+                        ${stats}
+
+                        <h2>${t("evolutions")}</h2>
+                        <div class="evolutions">${evolutionCards}</div>
+                    </div>
+                </div>
+
+                <div class="footer-actions">
+                    <button class="action" onclick="goBack()">
+                        ${t("back")}
+                    </button>
+                </div>
+            `;
+    } catch (e) {
+      console.error(e);
+
+      $("detail").innerHTML = `
+                <div class="state error">
+                    ${t("dErr")}
+                    <br>
+
+                    <button class="action" onclick="loadDetails()">
+                        ${t("retry")}
+                    </button>
+
+                    <button class="action" onclick="goBack()">
+                        ${t("back")}
+                    </button>
+                </div>
+            `;
+    }
+  }
+
+  document.addEventListener("languageChanged", loadDetails);
+
+  loadDetails();
+</script>
+</body>
+</html>
