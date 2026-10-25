@@ -33,6 +33,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: test
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Copy deployment files to EC2 via SSH
         uses: appleboy/scp-action@master
         with:
