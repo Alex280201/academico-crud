@@ -42,7 +42,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.deploy.yml"
+          source: "docker-compose.deploy.yml,nginx/default.conf"
           target: "/home/ec2-user/academico"
 
       - name: Execute Docker Compose pull and up on EC2
@@ -53,5 +53,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ec2-user/academico
+            export DOCKERHUB_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+            export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
             docker compose -f docker-compose.deploy.yml pull
             docker compose -f docker-compose.deploy.yml up -d --remove-orphans
