@@ -49,3 +49,5 @@ test-results/
 /playwright/.auth/
 
 *.pem
+
+docker-compose.yml
